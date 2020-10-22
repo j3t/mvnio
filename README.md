@@ -104,9 +104,6 @@ Uploaded to release-repo: https://mvn-io.cloud/maven/releases/foo/bar/1.0-1/bar-
     * external repositories can be proxied
 * repository management via UI
 
-# Implementation details
-* 
-
 # Pitfalls
 * users accessKey/secretKey in S3/MinIO, are used as username/password in Maven (see `~/.m2/settings.xml`)
 * users can bypass the repository and access objects directly in S3/MinIO
