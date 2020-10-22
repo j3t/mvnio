@@ -1,3 +1,5 @@
+![Travis](https://travis-ci.org/j3t/mvn-io.svg?branch=master)
+
 This project provides a webserver that implements the [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final),  
 which basically means that it can be used to upload/download Maven-Artifacts with Maven 2 and 3.
 
