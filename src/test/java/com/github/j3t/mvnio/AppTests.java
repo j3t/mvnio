@@ -14,6 +14,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import testcontainers.MinioContainer;
 import testcontainers.MinioMcContainer;
 
+import java.util.UUID;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.util.Base64Utils.encodeToString;
 
@@ -60,6 +62,28 @@ class AppTests {
                 // THEN
                 .expectStatus().isUnauthorized()
                 .expectHeader().exists("WWW-Authenticate");
+    }
+
+    @Test
+    void testUploadRepositoryNotFound() {
+        // GIVEN
+
+        // WHEN
+        uploadExchange(UUID.randomUUID().toString(), "/bla/foo/1.0.1/foo-1.0.1.pom")
+
+                // THEN
+                .expectStatus().isNotFound();
+    }
+
+    @Test
+    void testDownloadRepositoryNotFound() {
+        // GIVEN
+
+        // WHEN
+        downloadExchange(UUID.randomUUID().toString(), "/bla/foo/1.0.1/foo-1.0.1.pom")
+
+                // THEN
+                .expectStatus().isNotFound();
     }
 
     @Test
@@ -122,16 +146,23 @@ class AppTests {
     }
 
     WebTestClient.ResponseSpec downloadExchange(String path) {
+        return downloadExchange("releases", path);
+    }
+
+    WebTestClient.ResponseSpec downloadExchange(String repository, String path) {
         return webTestClient.get()
-                .uri("/maven/releases" + path)
+                .uri("/maven/" +repository + path)
                 .header("authorization", credentials())
                 .exchange();
     }
 
     WebTestClient.ResponseSpec uploadExchange(String path) {
-        return
-webTestClient
-        .put()  .uri("/maven/releases" + path)
+        return uploadExchange("releases", path);
+    }
+
+    WebTestClient.ResponseSpec uploadExchange(String repository, String path) {
+        return webTestClient.put()
+                .uri("/maven/" + repository + path)
                 .header("authorization", credentials())
                 .header("content-type", "application/xml")
                 .contentLength(11)
