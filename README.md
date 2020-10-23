@@ -24,70 +24,64 @@ permissions per bucket are as follows:
 Note: ***Clients can bypass the repository and modify artifacts in S3 directly!***
 
 # Getting started
-* start `mvn-io` and connect it to S3
-    * property: `s3.endpoint` (default: `http://localhost:9000`)
-* create a S3 bucket (name: `releases`)
-* create a S3 user (accessKey: `release-user`, secretKey: `wJa4rXUtnF8MI`)
-* make sure the user has access to the bucket and can read and write objects (the policy below is sufficient):
+This example shows a `mvn-io` setup with `MinIO` as storage provider. For sake of simplicity, the example uses the MinIO 
+admin user but any user with enougth permissions is sufficient (see [Security](#security)). You will also need installed 
+`docker-compose` and `mvn` to execute the commands on your local machine.
+
+* run `docker-compose up` start up `mvn-io` and `MinIO` as well
+* run `docker-compose run --rm mc config host add minio http://minio:9000 admin long-password` once to register MinIO
+* run `docker-compose run --rm mc mb minio/releases` to create a bucket named `releases`
+* adjust your `~/.m2/settings.xml`:
 ```
-{
- "Version": "2012-10-17",
- "Statement": [
-  {
-   "Effect": "Allow",
-   "Action": [
-    "s3:HeadObject",
-    "s3:GetObject",
-    "s3:PutObject"
-   ],
-   "Resource": [
-    "arn:aws:s3:::releases/*"
-   ]
-  }
- ]
-}
-```
-* prepare your `~/.m2/settings.xml` like:
-```
-<settings>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
   <servers>
     <server>
-      <id>release-repo</id>
-      <username>release-user</username>
-      <password>wJa4rXUtnF8MI</password>
+      <id>maven-releases</id>
+      <username>admin</username>
+      <password>long-password</password>
     </server>
   </servers>
 </settings>
 ```
-* connect your project to the repository:
+* create a file named `pom.xml` in an empty directory with the following content:
 ```
-<project>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <groupId>foo</groupId>
     <artifactId>bar</artifactId>
     <version>1.0.1</version>
 
     <distributionManagement>
         <repository>
-            <id>release-repo</id>
-            <url>https://<your-domain>/maven/releases</url>
+            <id>maven-releases</id>
+            <url>http://localhost:8181/maven/releases</url>
         </repository>
     </distributionManagement>
-    ...
+</project>
 ```
 * run `mvn deploy`
 ```
 ...
-[INFO] --- maven-deploy-plugin:2.8.2:deploy (default-deploy) @ bar ---
-Uploading to release-repo: https://mvn-io.cloud/maven/releases/foo/bar/1.0-1/bar-1.0-1.jar
-Uploaded to release-repo: https://mvn-io.cloud/maven/releases/foo/bar/1.0-1/bar-1.0-1.jar (3.3 kB at 42 kB/s)
-Uploading to release-repo: https://mvn-io.cloud/maven/releases/foo/bar/1.0-1/bar-1.0-1.pom
-Uploaded to release-repo: https://mvn-io.cloud/maven/releases/foo/bar/1.0-1/bar-1.0-1.pom (3.1 kB at 48 kB/s)
+[INFO] --- maven-deploy-plugin:2.7:deploy (default-deploy) @ bar ---
+Uploading to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.jar
+Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.jar (1.4 kB at 1.1 kB/s)
+Uploading to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.pom
+Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.pom (601 B at 5.1 kB/s)
+Downloading from maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-metadata.xml
+Uploading to maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-metadata.xml
+Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-metadata.xml (286 B at 2.1 kB/s)
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 4.633 s
-[INFO] Finished at: 2020-10-18T10:57:00+02:00
-[INFO] Final Memory: 25M/339M
+[INFO] Total time: 2.917 s
+[INFO] Finished at: 2020-10-23T13:22:45+02:00
+[INFO] Final Memory: 12M/209M
 [INFO] ------------------------------------------------------------------------
 ```
 
@@ -99,7 +93,6 @@ Uploaded to release-repo: https://mvn-io.cloud/maven/releases/foo/bar/1.0-1/bar-
 * support for any S3 compatible storage provider 
 
 # Roadmap
-* Travis executes tests continuously 
 * the central repository can be mirrored
 * alternative credential provider (e.g. `vault`)
     * storage provider is configurable per repository

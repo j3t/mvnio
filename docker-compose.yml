@@ -1,0 +1,27 @@
+version: '2.1'
+services:
+
+  minio:
+    image: minio/minio
+    restart: always
+    command: server /data
+    environment:
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: long-password
+
+  mc:
+    image: minio/mc
+    command: -version
+    volumes:
+      - mc:/root/.mc
+
+  mvnio:
+    image: jtlabs/mvnio
+    restart: always
+    environment:
+      S3_ENDPOINT: http://minio:9000
+    ports:
+      - 8181:8080
+
+volumes:
+  mc:
