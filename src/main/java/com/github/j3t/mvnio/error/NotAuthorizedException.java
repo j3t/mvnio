@@ -6,7 +6,7 @@ public class NotAuthorizedException extends RuntimeException {
     private final String repository;
 
     public NotAuthorizedException(@NonNull String repository) {
-        super("Not authorized, access to repository (" + repository + ") denied");
+        super("Not authorized, access denied");
         this.repository = repository;
     }
 

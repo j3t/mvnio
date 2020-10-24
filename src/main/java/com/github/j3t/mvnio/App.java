@@ -1,6 +1,6 @@
 package com.github.j3t.mvnio;
 
-import com.github.j3t.mvnio.repo.AWSContextFilter;
+import com.github.j3t.mvnio.storage.S3CredentialsWebFilter;
 import com.github.j3t.mvnio.storage.S3Repository;
 import com.github.j3t.mvnio.storage.S3RepositoryS3AsyncClientImpl;
 import org.springframework.boot.SpringApplication;
@@ -42,8 +42,8 @@ public class App {
     }
 
     @Bean
-    AWSContextFilter credentialContextFilter() {
-        return new AWSContextFilter();
+    S3CredentialsWebFilter credentialContextFilter() {
+        return new S3CredentialsWebFilter();
     }
 
 }

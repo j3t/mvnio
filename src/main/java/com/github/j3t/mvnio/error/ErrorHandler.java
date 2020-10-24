@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 

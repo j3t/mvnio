@@ -76,6 +76,17 @@ class AppTests {
     }
 
     @Test
+    void testUploadSnapshotRepositoryNotFound() {
+        // GIVEN
+
+        // WHEN
+        uploadExchange("snapshots", "/bla/foo/1.0.1/foo-1.0.1.jar")
+
+                // THEN
+                .expectStatus().isNotFound();
+    }
+
+    @Test
     void testDownloadRepositoryNotFound() {
         // GIVEN
 
@@ -151,7 +162,7 @@ class AppTests {
 
     WebTestClient.ResponseSpec downloadExchange(String repository, String path) {
         return webTestClient.get()
-                .uri("/maven/" +repository + path)
+                .uri("/maven/" + repository + path)
                 .header("authorization", credentials())
                 .exchange();
     }
