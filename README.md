@@ -1,22 +1,22 @@
-![Travis](https://travis-ci.org/j3t/mvn-io.svg?branch=master)
+![Travis](https://travis-ci.org/j3t/mvn-io.svg?branch=master) ![Docker](https://img.shields.io/docker/v/jtlabs/mvnio)
 
-This project provides a webserver that implements the [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final),  
-which basically means that it can be used to upload/download Maven-Artifacts with Maven 2 and 3.
+`mvnio` is a repository where Maven artifacts can be uploaded and downloaded. The webserver is implemented with 
+reactive streams, or more specific with [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux)
+and it uses S3 buckets as storage provider, but any `S3 compatible storage` is sufficient (e.g. `MinIO`).
 
 # How it Works
-The Maven-Artifacts are stored in S3 buckets, but any `S3 compatible storage` is sufficient (e.g. `MinIO`). `mvn-io` is 
-a webserver which acts like a proxy so that they are accessible by Maven. The diagram below shows how maven client 
-requests to `mvn-io` are mapped to the S3 storage.
+Maven clients upload and download artifacts via the webserver, and the webserver takes care of that they are persisted 
+in S3 buckets. The diagram below shows how maven client requests to `mvn-io` are mapped to the S3 storage.
 
 ![Basic](https://plantuml.j3t.urown.cloud/png/ootBKz2rKr3ABSlJpSnNKh1IS7SDKSWlKWW83Od9qyzDB4lDqwykIYt8ByuioI-ghDMlJYmgoKnBJ2wfvOBh0faGRAplcvddwGys8xN4FoahDRa4R58fb1EJbrIQd9rQOejidev2TcgbBRAX28EG78PY5v090000)
 
-For example a `GET /maven/releases/com/github/j3t/mvnio/1.0.1/mvnio-1.0.1.pom` request to `mvn-io` results in a 
-`GetObject(bucket:releases, key:com/github/j3t/mvnio/1.0.1/mvnio-1.0.1.pom)` request to `S3`.
+For example, if a client requests `GET /maven/releases/com/github/j3t/mvnio/1.0.1/mvnio-1.0.1.pom` from `mvnio` 
+then, the object with key `com/github/j3t/mvnio/1.0.1/mvnio-1.0.1.pom` in bucket `releases` gets request from `S3`.
 
 # Security
-`mvn-io` expects a `Basic Authorization` Header sent along with any client request. The credentials are not validated 
-by `mvn-io` but used to access the corresponding bucket. Meaning, the client needs access to a valid S3 user, and the 
-permissions per bucket are as follows:
+`mvnio` expects a `Basic Authorization` Header sent along with any client request. Client credentials will not be 
+validated by `mvnio` but they will be required to access the corresponding bucket in S3. This means, the client needs 
+access to S3 and the corresponding user needs proper permissions which are as follows:
 
 * `s3:GetObject` - to download artifacts
 * `s3:HeadObject` and `s3:PutObject` - to upload artifacts
@@ -24,11 +24,12 @@ permissions per bucket are as follows:
 Note: ***Clients can bypass the repository and modify artifacts in S3 directly!***
 
 # Getting started
-This example shows a `mvn-io` setup with `MinIO` as storage provider. For sake of simplicity, the example uses the MinIO 
-admin user but any user with enougth permissions is sufficient (see [Security](#security)). You will also need installed 
-`docker-compose` and `mvn` to execute the commands on your local machine.
+This example shows how `mvnio` can be setup with [MinIO](https://min.io/) as storage provider. It requires 
+`docker-compose` and `mvn` installed properly and, for sake of simplicity, the MinIO admin user will be used to 
+connect to S3/MinIO, but any user with proper permissions is sufficient (see [Security](#security)).
 
-* run `docker-compose up` start up `mvn-io` and `MinIO` as well
+Let's get started:
+* run `docker-compose up` start up `mvn-io` and `MinIO` as well (ports: 8181 and 9191)
 * run `docker-compose run --rm mc config host add minio http://minio:9000 admin long-password` once to register MinIO
 * run `docker-compose run --rm mc mb minio/releases` to create a bucket named `releases`
 * adjust your `~/.m2/settings.xml`:
@@ -84,6 +85,7 @@ Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-m
 [INFO] Final Memory: 12M/209M
 [INFO] ------------------------------------------------------------------------
 ```
+The artifacts should now be visible in `MinIO` http://localhost:9191 
 
 # Features
 * fully implemented [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final)

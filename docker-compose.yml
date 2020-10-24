@@ -5,6 +5,8 @@ services:
     image: minio/minio
     restart: always
     command: server /data
+    ports:
+      - 9191:9000
     environment:
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: long-password
