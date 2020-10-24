@@ -1,5 +1,5 @@
-![Travis](https://travis-ci.org/j3t/mvn-io.svg?branch=master) ![Docker](https://img.shields.io/docker/v/jtlabs/mvnio)
-
+![Travis](https://travis-ci.org/j3t/mvn-io.svg?branch=master) <a href="https://hub.docker.com/r/jtlabs/mvnio/tags"><img src="https://img.shields.io/docker/v/jtlabs/mvnio" alt="Docker"></a> 
+ 
 `mvnio` is a repository where Maven artifacts can be uploaded and downloaded. The webserver is implemented with 
 reactive streams, or more specific with [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux)
 and it uses S3 buckets as storage provider, but any `S3 compatible storage` is sufficient (e.g. `MinIO`).
