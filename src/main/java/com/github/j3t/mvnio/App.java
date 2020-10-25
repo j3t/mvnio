@@ -3,13 +3,16 @@ package com.github.j3t.mvnio;
 import com.github.j3t.mvnio.storage.S3CredentialsWebFilter;
 import com.github.j3t.mvnio.storage.S3Repository;
 import com.github.j3t.mvnio.storage.S3RepositoryS3AsyncClientImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
+@Slf4j
 @SpringBootApplication
 public class App {
 
@@ -29,11 +32,16 @@ public class App {
                 .chunkedEncodingEnabled(true)
                 .build();
 
-        return S3AsyncClient.builder()
+        S3AsyncClientBuilder builder = S3AsyncClient.builder()
                 .region(Region.of(appProperties.getS3Region()))
-                .serviceConfiguration(serviceConfiguration)
-                .endpointOverride(appProperties.getS3Endpoint())
-                .build();
+                .serviceConfiguration(serviceConfiguration);
+
+        if (appProperties.isS3OverrideEndpoint()) {
+            log.info("custom S3 endpoint: " + appProperties.getS3Endpoint());
+            builder.endpointOverride(appProperties.getS3Endpoint());
+        }
+
+        return builder.build();
     }
 
     @Bean

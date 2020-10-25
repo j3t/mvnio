@@ -6,7 +6,7 @@ services:
     restart: always
     command: server /data
     ports:
-      - 9191:9000
+      - 9000:9000
     environment:
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: long-password
@@ -21,9 +21,10 @@ services:
     image: jtlabs/mvnio
     restart: always
     environment:
+      S3_OVERRIDE_ENDPOINT: "true"
       S3_ENDPOINT: http://minio:9000
     ports:
-      - 8181:8080
+      - 8080:8080
 
 volumes:
   mc:

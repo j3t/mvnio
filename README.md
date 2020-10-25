@@ -15,8 +15,8 @@ The diagram below shows how `mvnio` handles maven client requests and how they a
 
 In general, a maven client interacts with a maven repository when it tries to `install` an artifact with a `GET` request 
 and when it wants to `deploy` and artifact with a `PUT` request. For example, when a client requests 
-`GET /maven/releases/com/github/j3t/mvnio/1.0.1/mvnio-1.0.1.pom` from `mvnio` then `mvnio` tries to get an object 
-with key `com/github/j3t/mvnio/1.0.1/mvnio-1.0.1.pom` in bucket `releases` from `S3`.
+`GET /maven/releases/foo/bar/1.0.1/bar-1.0.1.pom` from `mvnio` then `mvnio` tries to get an object 
+with key `foo/bar/1.0.1/bar-1.0.1.pom` in bucket `releases` from `S3`.
 
 # Configuration
 [AppProperties](src/main/java/com/github/j3t/mvnio/AppProperties.java) contains a list of all available configuration 
@@ -25,7 +25,7 @@ parameters, and their default values.
 # Security
 `mvnio` expects a `Basic Authorization` Header sent along with any client request. Client credentials will not be 
 validated by `mvnio` but they will be required to access the corresponding bucket in S3. This means, the client needs 
-access to S3 and the corresponding user needs proper permissions which are as follows:
+access to S3, and the corresponding user needs proper permissions which are as follows:
 
 * `s3:GetObject` - to download artifacts
 * `s3:HeadObject` and `s3:PutObject` - to upload artifacts
@@ -38,7 +38,7 @@ This example shows how `mvnio` can be setup with [MinIO](https://min.io/) as sto
 connect to S3/MinIO, but any user with proper permissions is sufficient (see [Security](#security)).
 
 Let's get started:
-* run `docker-compose up` start up `mvn-io` and `MinIO` as well (ports: 8181 and 9191)
+* run `docker-compose up` to start up `mvnio` and `MinIO` as well (ports: 8080 and 9000)
 * run `docker-compose run --rm mc config host add minio http://minio:9000 admin long-password` once to register MinIO
 * run `docker-compose run --rm mc mb minio/releases` to create a bucket named `releases`
 * adjust your `~/.m2/settings.xml`:
@@ -70,7 +70,7 @@ Let's get started:
     <distributionManagement>
         <repository>
             <id>maven-releases</id>
-            <url>http://localhost:8181/maven/releases</url>
+            <url>http://localhost:8080/maven/releases</url>
         </repository>
     </distributionManagement>
 </project>
@@ -79,13 +79,13 @@ Let's get started:
 ```
 ...
 [INFO] --- maven-deploy-plugin:2.7:deploy (default-deploy) @ bar ---
-Uploading to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.jar
-Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.jar (1.4 kB at 1.1 kB/s)
-Uploading to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.pom
-Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/1.0.1/bar-1.0.1.pom (601 B at 5.1 kB/s)
-Downloading from maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-metadata.xml
-Uploading to maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-metadata.xml
-Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-metadata.xml (286 B at 2.1 kB/s)
+Uploading to maven-releases: http://localhost:8080/maven/releases/foo/bar/1.0.1/bar-1.0.1.jar
+Uploaded to maven-releases: http://localhost:8080/maven/releases/foo/bar/1.0.1/bar-1.0.1.jar (1.4 kB at 1.1 kB/s)
+Uploading to maven-releases: http://localhost:8080/maven/releases/foo/bar/1.0.1/bar-1.0.1.pom
+Uploaded to maven-releases: http://localhost:8080/maven/releases/foo/bar/1.0.1/bar-1.0.1.pom (601 B at 5.1 kB/s)
+Downloading from maven-releases: http://localhost:8080/maven/releases/foo/bar/maven-metadata.xml
+Uploading to maven-releases: http://localhost:8080/maven/releases/foo/bar/maven-metadata.xml
+Uploaded to maven-releases: http://localhost:8080/maven/releases/foo/bar/maven-metadata.xml (286 B at 2.1 kB/s)
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -94,7 +94,8 @@ Uploaded to maven-releases: http://localhost:8181/maven/releases/foo/bar/maven-m
 [INFO] Final Memory: 12M/209M
 [INFO] ------------------------------------------------------------------------
 ```
-The artifacts should now be visible in `MinIO` http://localhost:9191 
+The artifacts should now be available in `MinIO`.
+* open http://localhost:9000 in your browser (accessKey: `admin`, secretKey: `long-password`)
 
 # Features
 * fully implemented [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final)
@@ -112,8 +113,8 @@ The artifacts should now be visible in `MinIO` http://localhost:9191
 * repository management via UI
 
 # Pitfalls
-* users accessKey/secretKey in S3/MinIO, are used as username/password in Maven (see `~/.m2/settings.xml`)
-* users can bypass the repository and access objects directly in S3/MinIO
+* users accessKey/secretKey in S3, are used as username/password in Maven (see `~/.m2/settings.xml`)
+* users can bypass the repository and access objects directly in S3
 
 # Further reading
 * [How does a Maven Repository work](https://blog.packagecloud.io/eng/2017/03/09/how-does-a-maven-repository-work/)

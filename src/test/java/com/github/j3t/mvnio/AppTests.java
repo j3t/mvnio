@@ -41,6 +41,7 @@ class AppTests {
 
     @DynamicPropertySource
     static void appProperties(DynamicPropertyRegistry registry) {
+        registry.add("s3.override-endpoint", () -> true);
         registry.add("s3.endpoint", () -> minio.getExternalAddress());
     }
 
