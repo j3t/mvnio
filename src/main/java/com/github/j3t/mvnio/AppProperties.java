@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.net.URI;
 
+/**
+ * Stores configuration parameter and their defaults.
+ */
 @Data
 public class AppProperties {
 
