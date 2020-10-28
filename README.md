@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/j3t/mvn-io.svg?branch=master)](https://travis-ci.org/j3t/mvn-io) 
+[![Build Status](https://travis-ci.org/j3t/mvnio.svg?branch=master)](https://travis-ci.org/j3t/mvnio) 
 [![Docker Tags](https://img.shields.io/docker/v/jtlabs/mvnio)](https://hub.docker.com/r/jtlabs/mvnio/tags)
  
 `mvnio` is a repository for Maven artifacts which uses S3 buckets to store artifacts in scalable fashion. The 

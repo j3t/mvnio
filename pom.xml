@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.j3t</groupId>
-    <artifactId>mvn-io</artifactId>
+    <artifactId>mvnio</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>mvn-io</name>
+    <name>mvnio</name>
     <description>Maven repository implementation with S3/MinIO as storage provider</description>
 
     <properties>
