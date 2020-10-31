@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.repo;
+package com.github.j3t.mvnio.maven;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

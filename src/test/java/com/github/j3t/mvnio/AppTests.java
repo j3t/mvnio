@@ -81,7 +81,7 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        uploadExchange("snapshots", "/bla/foo/1.0.1/foo-1.0.1.jar")
+        uploadExchange("snapshots", "/bla/foo/1.0.1-SNAPSHOT/foo-1.0.1-20201023.142512-1.jar")
 
                 // THEN
                 .expectStatus().isNotFound();
@@ -110,7 +110,7 @@ class AppTests {
     }
 
     @Test
-    void testArtifactIsAvailable() {
+    void testArtifactIsUploadedAndAvailable() {
         // GIVEN
         uploadExchange("/bla/foo/1.0.1/foo-1.0.1.pom").expectStatus().isCreated();
 

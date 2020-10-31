@@ -21,7 +21,7 @@ public class MinioContainer extends GenericContainer<MinioContainer> {
         withEnv("MINIO_SECRET_KEY", UUID.randomUUID().toString());
         withCommand("server /data");
         withExposedPorts(9000);
-        withNetwork(Network.newNetwork());
+        withNetwork(Network.newNetwork());  // we need a dedicated network otherwise mc cannot participate
     }
 
     public String accessKey() {

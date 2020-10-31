@@ -1,8 +1,8 @@
-package com.github.j3t.mvnio.repo.validation;
+package com.github.j3t.mvnio.maven.validation;
 
 import reactor.core.publisher.Mono;
 
-import static com.github.j3t.mvnio.repo.validation.IdValidator.STRING;
+import static com.github.j3t.mvnio.maven.validation.IdValidator.STRING;
 import static java.lang.String.format;
 
 /**

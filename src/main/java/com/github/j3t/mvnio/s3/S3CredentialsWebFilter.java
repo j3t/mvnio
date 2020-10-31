@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.storage;
+package com.github.j3t.mvnio.s3;
 
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;

@@ -1,7 +1,9 @@
-package com.github.j3t.mvnio.repo.validation;
+package com.github.j3t.mvnio.maven.validation;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
 
 /**
  * Validates a given Maven groupId.
@@ -18,13 +20,21 @@ public class GroupValidator implements Validator {
 
     @Override
     public Mono<Error> validate() {
-        return groupIdParts.length == 0 ? Mono.just(Error.builder()
-                .value(groupIdParts)
-                .message("GroupId is empty!")
-                .build()) : Flux.just(groupIdParts)
+        return groupIdParts.length == 0 ? emptyPath() : notEmptyPath();
+    }
+
+    private Mono<Error> notEmptyPath() {
+        return Flux.just(groupIdParts)
                 .flatMap(part -> new IdValidator(part).validate())
                 .limitRequest(1)
                 .next()
-                .map(e -> Error.builder().value(groupIdParts).message("GroupId invalid!").build());
+                .map(e -> Error.builder().value(Arrays.toString(groupIdParts)).message("GroupId invalid!").build());
+    }
+
+    private Mono<Error> emptyPath() {
+        return Mono.just(Error.builder()
+                .value(Arrays.toString(groupIdParts))
+                .message("GroupId empty!")
+                .build());
     }
 }

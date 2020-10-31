@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.repo.validation;
+package com.github.j3t.mvnio.maven.validation;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +9,6 @@ import lombok.Data;
 @Data
 @Builder
 public class Error {
-    private Object value;
+    private String value;
     private String message;
 }

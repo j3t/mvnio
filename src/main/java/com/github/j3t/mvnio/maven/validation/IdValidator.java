@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.repo.validation;
+package com.github.j3t.mvnio.maven.validation;
 
 import reactor.core.publisher.Mono;
 
