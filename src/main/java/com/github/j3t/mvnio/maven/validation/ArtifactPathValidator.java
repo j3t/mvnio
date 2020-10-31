@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.repo.validation;
+package com.github.j3t.mvnio.maven.validation;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -35,6 +35,6 @@ public class ArtifactPathValidator implements Validator {
                 .flatMap(Validator::validate)
                 .limitRequest(1)
                 .next()
-                .map(e -> Error.builder().value(path).message("Not a valid artifact-path!").build());
+                .map(e -> Error.builder().value(path).message("Artifact-Path is not valid!").build());
     }
 }

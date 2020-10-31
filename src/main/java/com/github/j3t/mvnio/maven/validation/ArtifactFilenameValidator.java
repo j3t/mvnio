@@ -1,8 +1,8 @@
-package com.github.j3t.mvnio.repo.validation;
+package com.github.j3t.mvnio.maven.validation;
 
 import reactor.core.publisher.Mono;
 
-import static com.github.j3t.mvnio.repo.validation.IdValidator.STRING;
+import static com.github.j3t.mvnio.maven.validation.IdValidator.STRING;
 import static java.lang.String.format;
 
 /**
@@ -28,7 +28,7 @@ public class ArtifactFilenameValidator implements Validator {
     public Mono<Error> validate() {
         return Mono.just(version)
                 .filter(v -> !(v.endsWith("-SNAPSHOT") ? isSnapshotVersion() : isReleaseVersion()))
-                .map(e -> Error.builder().value(filename).message("Artifact-Name not valid!").build());
+                .map(e -> Error.builder().value(filename).message("Artifact-Name is not valid!").build());
     }
 
     private boolean isReleaseVersion() {

@@ -1,11 +1,11 @@
-package com.github.j3t.mvnio.repo;
+package com.github.j3t.mvnio.maven;
 
 import com.github.j3t.mvnio.AppProperties;
 import com.github.j3t.mvnio.error.ArtifactAlreadyExistsException;
 import com.github.j3t.mvnio.error.ArtifactPathNotValidException;
-import com.github.j3t.mvnio.repo.validation.ArtifactPathValidator;
-import com.github.j3t.mvnio.repo.validation.MetadataPathValidator;
-import com.github.j3t.mvnio.storage.S3Repository;
+import com.github.j3t.mvnio.maven.validation.ArtifactPathValidator;
+import com.github.j3t.mvnio.maven.validation.MetadataPathValidator;
+import com.github.j3t.mvnio.s3.S3Repository;
 import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.repo;
+package com.github.j3t.mvnio.maven;
 
 import org.springframework.http.MediaType;
 import reactor.core.publisher.Mono;

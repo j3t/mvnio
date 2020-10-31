@@ -1,7 +1,7 @@
-package com.github.j3t.mvnio.storage;
+package com.github.j3t.mvnio.s3;
 
 import com.github.j3t.mvnio.error.NotAuthorizedException;
-import com.github.j3t.mvnio.storage.FluxByteBufferResponseTransformer.Result;
+import com.github.j3t.mvnio.s3.FluxByteBufferResponseTransformer.Result;
 import lombok.NonNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
@@ -14,7 +14,7 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 
-import static com.github.j3t.mvnio.storage.S3CredentialsWebFilter.S3_CREDENTIALS_PROVIDER;
+import static com.github.j3t.mvnio.s3.S3CredentialsWebFilter.S3_CREDENTIALS_PROVIDER;
 
 public class S3RepositoryS3AsyncClientImpl implements S3Repository {
 

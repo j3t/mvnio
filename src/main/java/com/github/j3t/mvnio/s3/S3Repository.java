@@ -1,6 +1,6 @@
-package com.github.j3t.mvnio.storage;
+package com.github.j3t.mvnio.s3;
 
-import com.github.j3t.mvnio.storage.FluxByteBufferResponseTransformer.Result;
+import com.github.j3t.mvnio.s3.FluxByteBufferResponseTransformer.Result;
 import lombok.NonNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;

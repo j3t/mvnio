@@ -15,7 +15,7 @@ public class ErrorHandler {
 
     private static void logError(int status, Exception e) {
         if (status < 500) {
-            log.info("status: {}, message: {}", status, e.getMessage());
+            log.debug("status: {}, message: {}", status, e.getMessage());
         } else {
             log.error("status: {}, message: {}", status, e.getMessage(), e);
         }

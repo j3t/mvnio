@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.storage;
+package com.github.j3t.mvnio.s3;
 
 import reactor.core.publisher.Flux;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
