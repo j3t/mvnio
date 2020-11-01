@@ -1,31 +1,36 @@
-[![Build Status](https://travis-ci.org/j3t/mvnio.svg?branch=master)](https://travis-ci.org/j3t/mvnio) 
+![CI](https://github.com/j3t/mvnio/workflows/CI/badge.svg) 
 [![Docker Tags](https://img.shields.io/docker/v/jtlabs/mvnio)](https://hub.docker.com/r/jtlabs/mvnio/tags)
  
-`mvnio` is a repository for Maven artifacts which uses S3 buckets to store artifacts in scalable fashion. The 
-underlying webserver is implemented with [reactive streams](https://www.reactive-streams.org/), or to be more specific 
-by using [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux)
-which uses [project-reactor](https://projectreactor.io/) under the hood. For the S3 connectivity, the [Amazon Async S3 client](https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/basics-async.html)
-library is used which is also non-blocking, and supports back pressure. It also works well with other S3 compatible 
-storage providers (e.g. `MinIO`).
+`mvnio` is a repository for Maven artifacts which uses S3 buckets to store and provide artifacts in scalable fashion. 
+
+The underlying webserver is implemented with [reactive streams](https://www.reactive-streams.org/), or more specific by using [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux) which uses [project-reactor](https://projectreactor.io/) under the hood. The S3 connectivity is implemented by using the [Amazon Async S3 client library](https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/basics-async.html) which is also non-blocking, and it supports backpressure. You can also use any other S3 compatible storage provider (e.g. `MinIO`).
+
+# Motivation
+There are plenty of [Maven Repository Managers](https://maven.apache.org/repository-management.html#available-repository-managers) and they are great and have a lot of features, but most of them doesn't support S3 buckets at all or not very well or require a special license.
+
+Another alternative is a so called maven-wagon which adds S3 support to your project. There are also plenty of them ([1](https://github.com/gkatzioura/CloudStorageMaven), [2](https://github.com/jcaddel/maven-s3-wagon), [3](https://github.com/seahen/maven-s3-wagon), ...), but they require an extra configuration which often is not supported by third-party products. For example Jenkins picks not up the extra configuration (see https://issues.jenkins-ci.org/browse/JENKINS-30058). They also cannot take into account that `Maven artifacts are immutable`. You could lock the objects in S3 but then the metadata cannot be updated anymore.
+
+# Features
+* [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final)
+* upload and download artifacts
+* stateless and horizontal scalable
+* support for any S3 compatible storage provider
+* multiple repositories
+* immutability protection
+* quick startup time and less memory consumption
 
 # How it Works
 The diagram below shows how `mvnio` handles maven client requests and how they are mapped to the S3 storage provider.
 
 ![Architecture](https://plantuml.j3t.urown.cloud/png/ootBKz2rKyWjoylCLx1IS7SDKSWlKWW83Od9qyzDB4lDqwykIYt8ByuioI-ghDMlJYmgoKnBJ2wfvO9e0UeDDWPfJ2tnJyfAJIu1Qo-5ScBoaagJirDBR94DqL78JgsqHJ89Q03C2GXJWGm0)
 
-In general, a maven client interacts with a maven repository when it tries to `install` an artifact with a `GET` request 
-and when it wants to `deploy` and artifact with a `PUT` request. For example, when a client requests 
-`GET /maven/releases/foo/bar/1.0.1/bar-1.0.1.pom` from `mvnio` then `mvnio` tries to get an object 
-with key `foo/bar/1.0.1/bar-1.0.1.pom` in bucket `releases` from `S3`.
+In general, a maven client interacts with a maven repository when it tries to `install` an artifact with a `GET` request and with a `PUT` request when it wants to `deploy` an artifact. For example, when a client requests `GET /maven/releases/foo/bar/1.0.1/bar-1.0.1.pom` from `mvnio` then `mvnio` tries to get an object with key `foo/bar/1.0.1/bar-1.0.1.pom` in bucket `releases` from `S3`.
 
 # Configuration
-[AppProperties](src/main/java/com/github/j3t/mvnio/AppProperties.java) contains a list of all available configuration 
-parameters, and their default values.  
+[AppProperties](src/main/java/com/github/j3t/mvnio/AppProperties.java) contains a list of all available configuration parameters, and their default values.  
 
 # Security
-`mvnio` expects a `Basic Authorization` Header sent along with any client request. Client credentials will not be 
-validated by `mvnio` but they will be required to access the corresponding bucket in S3. This means, the client needs 
-access to S3, and the corresponding user needs proper permissions which are as follows:
+`mvnio` expects a `Basic Authorization` Header sent along with any client request. Client credentials will not be validated by `mvnio` but they will be required to access the corresponding bucket in S3. This means, the clients underlying user needs permissions to access the S3 bucket which are as follows:
 
 * `s3:GetObject` - to download artifacts
 * `s3:HeadObject` and `s3:PutObject` - to upload artifacts
@@ -33,9 +38,7 @@ access to S3, and the corresponding user needs proper permissions which are as f
 Note: ***Clients can bypass the repository and modify artifacts in S3 directly!***
 
 # Getting started
-This example shows how `mvnio` can be setup with [MinIO](https://min.io/) as storage provider. It requires 
-`docker-compose` and `mvn` installed properly and, for sake of simplicity, the MinIO admin user will be used to 
-connect to S3/MinIO, but any user with proper permissions is sufficient (see [Security](#security)).
+This example shows how `mvnio` can be set up with [MinIO](https://min.io/) as storage provider. It requires `docker-compose` and `mvn` installed properly and, for sake of simplicity, the MinIO admin user will be used to connect to S3/MinIO. For production environments you should use an extra user with strong credentials, and the minimum required permissions (see [Security](#security))!
 
 Let's get started:
 * run `docker-compose up` to start up `mvnio` and `MinIO` as well (ports: 8080 and 9000)
@@ -97,20 +100,15 @@ Uploaded to maven-releases: http://localhost:8080/maven/releases/foo/bar/maven-m
 The artifacts should now be available in `MinIO`.
 * open http://localhost:9000 in your browser (accessKey: `admin`, secretKey: `long-password`)
 
-# Features
-* fully implemented [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final)
-* upload and download Maven artifacts
-* multiple repositories
-* stateless and thanks to S3 also horizontal scalable
-* support for any S3 compatible storage provider 
-
 # Roadmap
-* S3 bucket End-To-End test
-* mirror for central
-* alternative credential provider (e.g. `vault`)
+* browse artifacts
+* mirror for central (light version, just proxy the request)
+* alternative user/account management
+    * independent of S3
+    * central configuration (via `vault` for example)
     * storage provider is configurable per repository
-    * proxy for external repositories
-* repository management via UI
+    * proxy/mirror for repositories (central and external)
+* Admin UI
 
 # Pitfalls
 * users accessKey/secretKey in S3, are used as username/password in Maven (see `~/.m2/settings.xml`)

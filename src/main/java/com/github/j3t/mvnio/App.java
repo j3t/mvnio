@@ -22,7 +22,9 @@ public class App {
 
     @Bean
     AppProperties appProperties() {
-        return new AppProperties();
+        AppProperties appProperties = new AppProperties();
+        log.info("appProperties: " + appProperties);
+        return appProperties;
     }
 
     @Bean
@@ -37,7 +39,6 @@ public class App {
                 .serviceConfiguration(serviceConfiguration);
 
         if (appProperties.isS3OverrideEndpoint()) {
-            log.info("custom S3 endpoint: " + appProperties.getS3Endpoint());
             builder.endpointOverride(appProperties.getS3Endpoint());
         }
 

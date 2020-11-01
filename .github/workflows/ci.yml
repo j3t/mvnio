@@ -31,6 +31,6 @@ jobs:
       - name: Login with DockerHub credentials
         run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
       - name: Build Docker image
-        run: mvn -B spring-boot:build-image -Dspring-boot.build-image.imageName=jtlabs/mvnio:latest
+        run: mvn -B spring-boot:build-image -Dspring-boot.build-image.imageName=jtlabs/mvnio:latest -DskipTests
       - name: Publish Docker image
         run: docker push docker.io/jtlabs/mvnio:latest
