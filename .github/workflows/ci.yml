@@ -25,6 +25,10 @@ jobs:
           java-version: 11
       - name: Build project and execute tests
         run: mvn -B verify
+      - name: Publish JaCoCo report
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./target/site/jacoco/jacoco.xml
   dockerize:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test]
