@@ -1,5 +1,6 @@
-![CI](https://github.com/j3t/mvnio/workflows/CI/badge.svg) 
+[![CI](https://github.com/j3t/mvnio/workflows/CI/badge.svg)](https://github.com/j3t/mvnio/actions?query=workflow%3ACI) 
 [![Docker Tags](https://img.shields.io/docker/v/jtlabs/mvnio)](https://hub.docker.com/r/jtlabs/mvnio/tags)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=j3t_mvnio&metric=alert_status)](https://sonarcloud.io/dashboard?id=j3t_mvnio)
  
 `mvnio` is a repository for Maven artifacts which uses S3 buckets to store and provide artifacts in scalable fashion. 
 
