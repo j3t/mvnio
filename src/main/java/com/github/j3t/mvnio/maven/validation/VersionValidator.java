@@ -4,14 +4,14 @@ import reactor.core.publisher.Mono;
 
 import java.util.regex.Pattern;
 
-import static com.github.j3t.mvnio.maven.validation.IdValidator.ID;
+import static com.github.j3t.mvnio.maven.validation.IdValidator.ID_REGEX;
 import static java.lang.String.format;
 
 /**
  * Validates the version of a given Maven artifact.
  */
 public class VersionValidator implements Validator {
-    static final Pattern VERSION_PATTERN = Pattern.compile(format("^%1$s(-SNAPSHOT)?$", ID));
+    static final Pattern VERSION_PATTERN = Pattern.compile(format("^%1$s(-SNAPSHOT)?$", ID_REGEX));
 
     private final String version;
 
@@ -25,7 +25,7 @@ public class VersionValidator implements Validator {
     @Override
     public Mono<Error> validate() {
         return Mono.just(version)
-                .filter(version -> !VERSION_PATTERN.matcher(version).matches())
-                .map(e -> Error.builder().value(version).message("Version not valid!").build());
+                .filter(v -> !VERSION_PATTERN.matcher(v).matches())
+                .map(v -> Error.builder().value(v).message("Version not valid!").build());
     }
 }

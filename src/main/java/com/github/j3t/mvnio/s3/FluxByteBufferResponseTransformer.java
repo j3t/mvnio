@@ -1,5 +1,6 @@
 package com.github.j3t.mvnio.s3;
 
+import lombok.Data;
 import reactor.core.publisher.Flux;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -33,9 +34,9 @@ public class FluxByteBufferResponseTransformer implements AsyncResponseTransform
         future.completeExceptionally(error);
     }
 
+    @Data
     public class Result {
-
-        public Flux<ByteBuffer> flux;
-        public GetObjectResponse sdkResponse;
+        private Flux<ByteBuffer> flux;
+        private GetObjectResponse sdkResponse;
     }
 }
