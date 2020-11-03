@@ -11,9 +11,9 @@ import static java.lang.String.format;
  * groupIds.
  */
 public class IdValidator implements Validator {
-    static final String STRING = "[\\w\\d]{1,20}";
-    static final String ID = format("^(%1$s[\\.-]){0,20}%1$s$", STRING);
-    private static final Pattern ID_PATTERN = Pattern.compile(ID);
+    static final String WORD_REGEX = "[\\w\\d]{1,20}";
+    static final String ID_REGEX = format("^(%1$s[\\.-]){0,20}%1$s$", WORD_REGEX);
+    private static final Pattern ID_PATTERN = Pattern.compile(ID_REGEX);
 
     private final String id;
 
@@ -24,7 +24,7 @@ public class IdValidator implements Validator {
     @Override
     public Mono<Error> validate() {
         return Mono.just(id)
-                .filter(id -> !ID_PATTERN.matcher(id).matches())
-                .map(e -> Error.builder().value(id).message("Id not valid!").build());
+                .filter(v -> !ID_PATTERN.matcher(v).matches())
+                .map(v -> Error.builder().value(v).message("Id not valid!").build());
     }
 }
