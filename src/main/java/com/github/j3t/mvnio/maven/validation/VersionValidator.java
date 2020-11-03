@@ -25,7 +25,7 @@ public class VersionValidator implements Validator {
     @Override
     public Mono<Error> validate() {
         return Mono.just(version)
-                .filter(version -> !VERSION_PATTERN.matcher(version).matches())
-                .map(e -> Error.builder().value(version).message("Version not valid!").build());
+                .filter(v -> !VERSION_PATTERN.matcher(v).matches())
+                .map(v -> Error.builder().value(v).message("Version not valid!").build());
     }
 }
