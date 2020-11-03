@@ -56,9 +56,9 @@ public class RepositoryController {
         return s3.download(repository, key(artifactPath))
                 // and return 200
                 .map(result -> ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_TYPE, result.sdkResponse.contentType())
-                        .header(HttpHeaders.CONTENT_LENGTH, Long.toString(result.sdkResponse.contentLength()))
-                        .body(result.flux));
+                        .header(HttpHeaders.CONTENT_TYPE, result.getSdkResponse().contentType())
+                        .header(HttpHeaders.CONTENT_LENGTH, Long.toString(result.getSdkResponse().contentLength()))
+                        .body(result.getFlux()));
     }
 
     /**
