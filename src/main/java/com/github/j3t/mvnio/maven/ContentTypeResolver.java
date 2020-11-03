@@ -5,10 +5,12 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,11 +21,13 @@ import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.util.StringUtils.getFilenameExtension;
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
-public interface ContentTypeResolver {
+public class ContentTypeResolver {
 
-    Map<String, MediaType> MEDIA_TYPES = parseMimeTypes();
+    private static final Map<String, MediaType> MEDIA_TYPES = parseMimeTypes();
 
-    static Mono<MediaType> findByPath(String path) {
+    private ContentTypeResolver() {}
+
+    public static Mono<MediaType> findByPath(String path) {
         return Mono.justOrEmpty(getFilenameExtension(path))
                 .map(String::toLowerCase)
                 .map(MEDIA_TYPES::get)
@@ -31,9 +35,10 @@ public interface ContentTypeResolver {
     }
 
     private static Map<String, MediaType> parseMimeTypes() {
-        try {
-            Path mediaTypes = Paths.get(ContentTypeResolver.class.getResource("/com/github/j3t/mvnio/mime.types").toURI());
-            return Files.lines(mediaTypes)
+        URL url = ContentTypeResolver.class.getResource("/com/github/j3t/mvnio/mime.types");
+
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(url.toURI()), StandardCharsets.UTF_8)) {
+            return reader.lines()
                     .filter(line -> !line.startsWith("#"))
                     .map(line -> new ArrayList<>(asList(tokenizeToStringArray(line, " \t\n\r\f"))))
                     .flatMap(list -> {
