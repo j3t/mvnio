@@ -34,7 +34,7 @@ class ContentTypeResolverTest {
 
     @ParameterizedTest
     @MethodSource("extensionsAndTypes")
-    public void testExtensionsWithTypes(String path, MediaType mediaType) {
+    void testExtensionsWithTypes(String path, MediaType mediaType) {
         StepVerifier
                 .create(ContentTypeResolver.findByPath(path))
                 .expectNext(mediaType)
@@ -45,7 +45,7 @@ class ContentTypeResolverTest {
 
     @ParameterizedTest
     @MethodSource("extensionsWithoutTypes")
-    public void testExtensionsWithoutTypes(String path) {
+    void testExtensionsWithoutTypes(String path) {
         StepVerifier
                 .create(ContentTypeResolver.findByPath(path))
                 .expectNextCount(0)
