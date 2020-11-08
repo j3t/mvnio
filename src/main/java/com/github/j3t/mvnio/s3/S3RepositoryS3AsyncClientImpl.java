@@ -5,14 +5,14 @@ import com.github.j3t.mvnio.s3.FluxByteBufferResponseTransformer.Result;
 import lombok.NonNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import reactor.util.context.Context;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.nio.ByteBuffer;
-import java.util.NoSuchElementException;
+import java.util.function.Consumer;
 
 import static com.github.j3t.mvnio.s3.S3CredentialsWebFilter.S3_CREDENTIALS_PROVIDER;
 
@@ -27,12 +27,10 @@ public class S3RepositoryS3AsyncClientImpl implements S3Repository {
     @Override
     public Mono<Result> download(@NonNull String bucket, @NonNull String key) {
 
-        return monoCredentialsProvider(bucket)
-                .flatMap(credentialsProvider -> Mono.fromFuture(s3AsyncClient.getObject(GetObjectRequest.builder()
+        return Mono.subscriberContext()
+                .flatMap(ctx -> Mono.fromFuture(s3AsyncClient.getObject(GetObjectRequest.builder()
                         .bucket(bucket)
-                        .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
-                                .credentialsProvider(credentialsProvider)
-                                .build())
+                        .overrideConfiguration(overrideConfiguration(ctx))
                         .key(key)
                         .build(), new FluxByteBufferResponseTransformer())));
     }
@@ -44,12 +42,10 @@ public class S3RepositoryS3AsyncClientImpl implements S3Repository {
                                           @NonNull Long contentLength,
                                           @NonNull Publisher<ByteBuffer> file) {
 
-        return monoCredentialsProvider(bucket)
-                .flatMap(credentialsProvider -> Mono.fromFuture(s3AsyncClient.putObject(PutObjectRequest.builder()
+        return Mono.subscriberContext()
+                .flatMap(ctx -> Mono.fromFuture(s3AsyncClient.putObject(PutObjectRequest.builder()
                         .bucket(bucket)
-                        .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
-                                .credentialsProvider(credentialsProvider)
-                                .build())
+                        .overrideConfiguration(overrideConfiguration(ctx))
                         .key(key)
                         .contentType(contentType)
                         .contentLength(contentLength)
@@ -59,19 +55,22 @@ public class S3RepositoryS3AsyncClientImpl implements S3Repository {
     @Override
     public Mono<HeadObjectResponse> head(@NonNull String bucket, @NonNull String key) {
 
-        return monoCredentialsProvider(bucket)
-                .flatMap(credentialsProvider -> Mono.fromFuture(s3AsyncClient.headObject(HeadObjectRequest.builder()
+        return Mono.subscriberContext()
+                .flatMap(ctx -> Mono.fromFuture(s3AsyncClient.headObject(HeadObjectRequest.builder()
                         .bucket(bucket)
-                        .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
-                                .credentialsProvider(credentialsProvider)
-                                .build())
+                        .overrideConfiguration(overrideConfiguration(ctx))
                         .key(key)
                         .build())));
     }
 
-    private Mono<AwsCredentialsProvider> monoCredentialsProvider(String bucket) {
-        return Mono.subscriberContext()
-                .map(ctx -> (AwsCredentialsProvider) ctx.get(S3_CREDENTIALS_PROVIDER))
-                .onErrorMap(NoSuchElementException.class, e -> new NotAuthorizedException(bucket));
+    private static Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfiguration(Context ctx) {
+        return builder -> {
+            if (ctx.hasKey(S3_CREDENTIALS_PROVIDER)) {
+                builder.credentialsProvider(ctx.get(S3_CREDENTIALS_PROVIDER));
+            } else {
+                throw new NotAuthorizedException();
+            }
+        };
     }
+
 }

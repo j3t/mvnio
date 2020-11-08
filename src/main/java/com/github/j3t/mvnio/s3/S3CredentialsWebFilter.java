@@ -28,16 +28,16 @@ public class S3CredentialsWebFilter implements WebFilter {
 
         List<String> authorization = exchange.getRequest().getHeaders().getOrEmpty("authorization");
 
-        if (!authorization.isEmpty()) {
-            String base64Credentials = authorization.get(0).substring("Basic".length()).trim();
-            String credentials = new String(Base64.getDecoder().decode(base64Credentials), UTF_8);
-            final String[] values = credentials.split(":", 2);
-            AwsCredentialsProvider credentialsProvider = () -> AwsBasicCredentials.create(values[0], values[1]);
-
-            return chain.filter(exchange).subscriberContext(ctx -> ctx.put(S3_CREDENTIALS_PROVIDER, credentialsProvider));
+        if (authorization.isEmpty()) {
+            return chain.filter(exchange);
         }
 
-        return chain.filter(exchange);
+        String base64Credentials = authorization.get(0).substring("Basic".length()).trim();
+        String credentials = new String(Base64.getDecoder().decode(base64Credentials), UTF_8);
+        final String[] values = credentials.split(":", 2);
+        AwsCredentialsProvider credentialsProvider = () -> AwsBasicCredentials.create(values[0], values[1]);
+        return chain.filter(exchange).subscriberContext(ctx -> ctx.put(S3_CREDENTIALS_PROVIDER, credentialsProvider));
+
     }
 
 }

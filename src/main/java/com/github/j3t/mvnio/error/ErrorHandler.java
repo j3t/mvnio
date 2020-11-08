@@ -1,11 +1,16 @@
 package com.github.j3t.mvnio.error;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.PathContainer;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ServerWebExchange;
+
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -21,16 +26,21 @@ public class ErrorHandler {
         }
     }
 
+    private static String getBucket(ServerWebExchange swe) {
+        List<PathContainer.Element> elements = swe.getRequest().getPath().pathWithinApplication().elements();
+        return elements.size() >= 4 ? elements.get(3).value() : "";
+    }
+
     @ExceptionHandler
     @ResponseBody
-    public Mono<ResponseEntity<String>> handleException(Exception e) {
+    public Mono<ResponseEntity<String>> handleException(Exception e, ServerWebExchange swe) {
         int status = 500;
         HttpHeaders httpHeaders = new HttpHeaders();
         String message = e.getMessage();
 
         if (e instanceof NotAuthorizedException) {
             status = 401;
-            String bucket = ((NotAuthorizedException) e).getRepository();
+            String bucket = getBucket(swe);
             httpHeaders.set("WWW-Authenticate", "Basic realm=\"s3\", bucket=\"" + bucket + "\"");
         } else if (e instanceof ArtifactAlreadyExistsException) {
             status = 403;

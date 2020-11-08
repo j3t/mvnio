@@ -1,16 +1,9 @@
 package com.github.j3t.mvnio.error;
 
-import lombok.NonNull;
-
 public class NotAuthorizedException extends RuntimeException {
-    private final String repository;
 
-    public NotAuthorizedException(@NonNull String repository) {
+    public NotAuthorizedException() {
         super("Not authorized, access denied");
-        this.repository = repository;
     }
 
-    public String getRepository() {
-        return repository;
-    }
 }

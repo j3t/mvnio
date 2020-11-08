@@ -1,5 +1,7 @@
 package testcontainers;
 
+import static java.lang.String.format;
+
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import org.testcontainers.containers.GenericContainer;
 
@@ -20,7 +22,7 @@ public class MinioMcContainer extends GenericContainer<MinioMcContainer> {
     @Override
     protected void containerIsStarted(InspectContainerResponse containerInfo) {
         try {
-            execMcCmd("mc config host add test-minio http://%s:9000 %s %s",
+            execSecure("mc config host add test-minio http://%s:9000 %s %s",
                     minio.getNetworkAliases().get(0),
                     minio.accessKey(),
                     minio.secretKey());
@@ -29,23 +31,28 @@ public class MinioMcContainer extends GenericContainer<MinioMcContainer> {
         }
     }
 
-    public ExecResult execMcCmd(String cmd, Object... args) throws IOException, InterruptedException {
-        ExecResult result = execMcCmdUnsafe(cmd, args);
+    public ExecResult execSecure(String command, Object... args) throws IOException, InterruptedException {
+        ExecResult result = exec(command, args);
         if (result.getExitCode() != 0) {
             throw new AssertionError(result.getStderr());
         }
         return result;
     }
 
-    public ExecResult execMcCmdUnsafe(String cmd, Object... args) throws IOException, InterruptedException {
-        return execInContainer(String.format(cmd, args).split("\\s"));
+    public ExecResult exec(String command, Object... args) throws IOException, InterruptedException {
+        return execInContainer("/bin/sh", "-c",  format(command, args));
     }
 
     public void deleteBucket(String bucket) throws IOException, InterruptedException {
-        execMcCmdUnsafe("mc rb test-minio/%s --force", bucket);
+        exec("mc rb test-minio/%s --force", bucket);
     }
 
     public void createBucket(String bucket) throws IOException, InterruptedException {
-        execMcCmd("mc mb test-minio/%s", bucket);
+        execSecure("mc mb test-minio/%s", bucket);
     }
+
+    public void createObject(String bucket, String key, String content) throws IOException, InterruptedException {
+        execSecure("echo -n \"%s\" | mc pipe test-minio/%s/%s", content, bucket, key);
+    }
+
 }
