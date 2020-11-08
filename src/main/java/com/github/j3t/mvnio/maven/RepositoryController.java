@@ -74,18 +74,18 @@ public class RepositoryController {
         // check: is a valid metadata path?
         return new MetadataPathValidator(artifactPath).validate()
                 // no -> check: is artifact validation enabled?
-                .filter(vem -> appProperties.isMavenValidate())
-                // yes -> check: is a valid artifact path?
-                .flatMap(validate -> new ArtifactPathValidator(artifactPath).validate()
+                .filter(errorMPV -> appProperties.isMavenValidate())
+                // yes -> check: is artifact path valid?
+                .flatMap(errorMPV -> new ArtifactPathValidator(artifactPath).validate()
                         // no -> throw an error
-                        .flatMap(vea -> Mono.error(new ArtifactPathNotValidException()))
+                        .flatMap(errorAPV -> Mono.error(new ArtifactPathNotValidException()))
                         // yes -> check: file exists?
                         .switchIfEmpty(s3.head(repository, key(artifactPath))
                                 // yes -> throw an error
                                 .flatMap(headResponse -> Mono.error(new ArtifactAlreadyExistsException()))
                                 // no -> handle the exception and return something
                                 .onErrorReturn(NoSuchKeyException.class, false)))
-                // no -> return empty
+                // no -> return empty (upload artifact approved)
                 .then();
     }
 

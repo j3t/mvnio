@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -17,6 +18,8 @@ import testcontainers.MinioMcContainer;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import static org.hamcrest.Matchers.is;
 import static org.springframework.util.Base64Utils.encodeToString;
 
 /**
@@ -26,6 +29,7 @@ import static org.springframework.util.Base64Utils.encodeToString;
  * is generated with the mc cli.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
 @Testcontainers
 class AppTests {
 
@@ -62,7 +66,7 @@ class AppTests {
 
                 // THEN
                 .expectStatus().isUnauthorized()
-                .expectHeader().exists("WWW-Authenticate");
+                .expectHeader().value("WWW-Authenticate", is("Basic realm=\"s3\", bucket=\"releases\""));
     }
 
     @Test

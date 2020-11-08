@@ -2,9 +2,9 @@
 [![Docker Tags](https://img.shields.io/docker/v/jtlabs/mvnio)](https://hub.docker.com/r/jtlabs/mvnio/tags)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=j3t_mvnio&metric=alert_status)](https://sonarcloud.io/dashboard?id=j3t_mvnio)
  
-`mvnio` is a repository for Maven artifacts which uses S3 buckets to store and provide artifacts in scalable fashion. 
+`mvnio` is a repository for Maven artifacts which uses S3 buckets to store and provide artifacts in a horizontal scalable fashion. 
 
-The underlying webserver is implemented with [reactive streams](https://www.reactive-streams.org/), or more specific by using [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux) which uses [project-reactor](https://projectreactor.io/) under the hood. The S3 connectivity is implemented by using the [Amazon Async S3 client library](https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/basics-async.html) which is also non-blocking, and it supports backpressure. You can also use any other S3 compatible storage provider (e.g. `MinIO`).
+The underlying webserver is implemented with [reactive streams](https://www.reactive-streams.org/), or more specific by using [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux) which uses [project-reactor](https://projectreactor.io/) under the hood. For the S3 bucket interaction, the [Amazon Async S3 client library](https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/basics-async.html) is used, which is also a non-blocking API and it supports other S3 compatible storage providers as well (e.g. `MinIO`).
 
 # Motivation
 There are plenty of [Maven Repository Managers](https://maven.apache.org/repository-management.html#available-repository-managers) and they are great and have a lot of features, but most of them doesn't support S3 buckets at all or not very well or require a special license.
