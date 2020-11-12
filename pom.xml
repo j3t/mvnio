@@ -16,7 +16,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <spring-boot.version>2.3.5.RELEASE</spring-boot.version>
-        <awssdk.version>2.15.25</awssdk.version>
+        <awssdk.version>2.15.26</awssdk.version>
         <testcontainers.version>1.15.0</testcontainers.version>
 
         <sonar.projectKey>j3t_mvnio</sonar.projectKey>
