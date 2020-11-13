@@ -1,4 +1,4 @@
-package com.github.j3t.mvnio.s3;
+package com.github.j3t.mvnio.storage;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -36,7 +36,7 @@ public class S3CredentialsWebFilter implements WebFilter {
         String credentials = new String(Base64.getDecoder().decode(base64Credentials), UTF_8);
         final String[] values = credentials.split(":", 2);
         AwsCredentialsProvider credentialsProvider = () -> AwsBasicCredentials.create(values[0], values[1]);
-        return chain.filter(exchange).subscriberContext(ctx -> ctx.put(S3_CREDENTIALS_PROVIDER, credentialsProvider));
+        return chain.filter(exchange).contextWrite(ctx -> ctx.put(S3_CREDENTIALS_PROVIDER, credentialsProvider));
 
     }
 

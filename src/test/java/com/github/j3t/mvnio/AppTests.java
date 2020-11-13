@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -17,10 +17,8 @@ import testcontainers.MinioMcContainer;
 
 import java.util.UUID;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import static org.hamcrest.Matchers.is;
-import static org.springframework.util.Base64Utils.encodeToString;
+import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
 /**
  * Checks that basic functionality works as expected. The test environment consists of a webserver which actually
@@ -29,7 +27,6 @@ import static org.springframework.util.Base64Utils.encodeToString;
  * is generated with the mc cli.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebTestClient
 @Testcontainers
 class AppTests {
 
@@ -41,6 +38,8 @@ class AppTests {
     static MinioMcContainer mc = new MinioMcContainer(minio);
 
     @Autowired
+    ApplicationContext context;
+
     WebTestClient webTestClient;
 
     @DynamicPropertySource
@@ -51,6 +50,10 @@ class AppTests {
 
     @BeforeEach
     void initTestBucket() throws Exception {
+        this.webTestClient = WebTestClient.bindToApplicationContext(this.context)
+                .configureClient()
+                .filter(basicAuthentication(minio.accessKey(), minio.secretKey()))
+                .build();
         mc.deleteBucket("releases");
         mc.createBucket("releases");
     }
@@ -60,7 +63,10 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        webTestClient.get()
+        WebTestClient.bindToApplicationContext(this.context)
+                .configureClient()
+                .build()
+                .get()
                 .uri("/maven/releases")
                 .exchange()
 
@@ -74,7 +80,7 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        uploadExchange(UUID.randomUUID().toString(), "/bla/foo/1.0.1/foo-1.0.1.pom")
+        uploadExchange(UUID.randomUUID().toString(), "/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
                 .expectStatus().isNotFound();
@@ -85,7 +91,7 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        uploadExchange("snapshots", "/bla/foo/1.0.1-SNAPSHOT/foo-1.0.1-20201023.142512-1.jar")
+        uploadExchange("snapshots", "/foo/bar/1.0.1-SNAPSHOT/bar-1.0.1-20201023.142512-1.jar")
 
                 // THEN
                 .expectStatus().isNotFound();
@@ -96,7 +102,7 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        downloadExchange(UUID.randomUUID().toString(), "/bla/foo/1.0.1/foo-1.0.1.pom")
+        downloadExchange(UUID.randomUUID().toString(), "/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
                 .expectStatus().isNotFound();
@@ -107,7 +113,7 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        downloadExchange("/bla/foo/1.0.1/foo-1.0.1.pom")
+        downloadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
                 .expectStatus().isNotFound();
@@ -116,10 +122,11 @@ class AppTests {
     @Test
     void testArtifactIsUploadedAndAvailable() {
         // GIVEN
-        uploadExchange("/bla/foo/1.0.1/foo-1.0.1.pom").expectStatus().isCreated();
+        uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
+                .expectStatus().isCreated();
 
         // WHEN
-        downloadExchange("/bla/foo/1.0.1/foo-1.0.1.pom")
+        downloadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
                 .expectStatus().isOk().expectBody().xml(EXPECTED_XML);
@@ -128,10 +135,10 @@ class AppTests {
     @Test
     void testArtifactIsImmutable() {
         // GIVEN
-        uploadExchange("/bla/foo/1.0.1/foo-1.0.1.pom").expectStatus().isCreated();
+        uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom").expectStatus().isCreated();
 
         // WHEN
-        uploadExchange("/bla/foo/1.0.1/foo-1.0.1.pom")
+        uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
                 .expectStatus().isForbidden();
@@ -142,23 +149,76 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        uploadExchange("/bla/foo/1.0.1/bla-1.0.1.pom")
+        uploadExchange("/foo/bar/1.0.1/foo-1.0.1.pom")
 
                 // THEN
                 .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void testMetadataIsEmpty() {
+        // GIVEN
+
+        // WHEN
+        metadata()
+
+                // THEN
+                .expectStatus().isOk()
+                .expectBody().json("[]");
+    }
+
+    @Test
+    void testMetadata() {
+        // GIVEN
+        uploadExchange("/foo/bar/maven-metadata.xml").expectStatus().isCreated();
+
+        // WHEN
+        metadata()
+
+                // THEN
+                .expectStatus().isOk()
+                .expectBody().json("[\"/foo/bar/maven-metadata.xml\"]");
+    }
+
+    @Test
+    void testList() {
+        // GIVEN
+        uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom").expectStatus().isCreated();
+        uploadExchange("/foo/bar/1.0.2/bar-1.0.2.pom").expectStatus().isCreated();
+        uploadExchange("/foo/bar/1.0.3/bar-1.0.3.pom").expectStatus().isCreated();
+        uploadExchange("/foo/bar/maven-metadata.xml").expectStatus().isCreated();
+
+        // WHEN
+        list("/foo/bar")
+
+                // THEN
+                .expectStatus().isOk()
+                .expectBody().json("[\"1.0.1/\",\"1.0.2/\",\"1.0.3/\",\"maven-metadata.xml\"]");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"", ".md5", ".sha1", ".asc"})
     void testMetadataIsMutable(String extension) {
         // GIVEN
-        uploadExchange("/bla/foo/maven-metadata.xml" + extension).expectStatus().isCreated();
+        uploadExchange("/foo/bar/maven-metadata.xml" + extension).expectStatus().isCreated();
 
         // WHEN
-        uploadExchange("/bla/foo/maven-metadata.xml" + extension)
+        uploadExchange("/foo/bar/maven-metadata.xml" + extension)
 
                 // THEN
                 .expectStatus().isCreated();
+    }
+
+    private WebTestClient.ResponseSpec list(String path) {
+        return webTestClient.get()
+                .uri("/list/releases"+path)
+                .exchange();
+    }
+
+    private WebTestClient.ResponseSpec metadata() {
+        return webTestClient.get()
+                .uri("/metadata/releases")
+                .exchange();
     }
 
     WebTestClient.ResponseSpec downloadExchange(String path) {
@@ -168,7 +228,6 @@ class AppTests {
     WebTestClient.ResponseSpec downloadExchange(String repository, String path) {
         return webTestClient.get()
                 .uri("/maven/" + repository + path)
-                .header("authorization", credentials())
                 .exchange();
     }
 
@@ -179,14 +238,9 @@ class AppTests {
     WebTestClient.ResponseSpec uploadExchange(String repository, String path) {
         return webTestClient.put()
                 .uri("/maven/" + repository + path)
-                .header("authorization", credentials())
                 .header("content-type", "application/xml")
                 .contentLength(11)
                 .bodyValue(EXPECTED_XML)
                 .exchange();
-    }
-
-    String credentials() {
-        return "Basic " + encodeToString((minio.accessKey() + ":" + minio.secretKey()).getBytes(UTF_8));
     }
 }

@@ -7,7 +7,7 @@ import reactor.test.StepVerifier;
 class IdValidatorTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"a", "1", "1a", "1-a2-2.2"})
+    @ValueSource(strings = {"a", "1", "1a", "1-a2-2.2", "linux-x86_64", "_"})
     void testValidArtifactIds(String id) {
         StepVerifier
                 .create(new IdValidator(id).validate())

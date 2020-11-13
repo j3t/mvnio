@@ -7,10 +7,10 @@ import reactor.test.StepVerifier;
 class ArtifactPathValidatorTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"/a/b/1/b-1.jar", "/a/b/1/b-1.jar.md5",
-            "/a/b/1/b-1.jar.sha1", "/a/b/1/b-1.jar.asc", "/a/b/1/b-1-sources.jar", "/a/b/1/b-1-javadoc.jar",
-            "/a/b/1/b-1-jdk11.jar",
-            "/foo/bar/1.0.2-SNAPSHOT/bar-1.0.2-20201023.142512-1.jar"
+    @ValueSource(strings = {"/a/b/1/b-1.jar", "/a/b/1/b-1.jar.md5", "/a/b/1/b-1.jar.sha1", "/a/b/1/b-1.jar.asc", "/a/b/1/b-1-sources.jar",
+            "/a/b/1/b-1-javadoc.jar", "/a/b/1/b-1-jdk11.jar", "/foo/bar/1.0.2-SNAPSHOT/bar-1.0.2-20201023.142512-1.jar",
+            "/io/netty/netty-transport-native-epoll/4.1.53.Final/netty-transport-native-epoll-4.1.53.Final-linux-x86_64.jar",
+            "/io/netty/netty-transport-native-epoll/4.1.53-SNAPSHOT/netty-transport-native-epoll-4.1.53-20201112.210114-1-linux-x86_64.jar",
     })
     void testValidArtifactPath(String path) {
         StepVerifier

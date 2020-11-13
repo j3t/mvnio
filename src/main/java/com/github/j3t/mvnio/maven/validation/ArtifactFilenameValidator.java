@@ -2,6 +2,7 @@ package com.github.j3t.mvnio.maven.validation;
 
 import reactor.core.publisher.Mono;
 
+import static com.github.j3t.mvnio.maven.validation.IdValidator.ID_REGEX;
 import static com.github.j3t.mvnio.maven.validation.IdValidator.WORD_REGEX;
 import static java.lang.String.format;
 
@@ -32,13 +33,14 @@ public class ArtifactFilenameValidator implements Validator {
     }
 
     private boolean isReleaseVersion() {
-        return filename.matches(format("^%1$s-%2$s(-%3$s)?(\\.%3$s){1,2}$", artifactId, version, WORD_REGEX));
+        return filename.matches(format("^%1$s-%2$s(-%3$s)?(\\.%4$s){1,2}$", artifactId, version, ID_REGEX, WORD_REGEX));
     }
 
     private boolean isSnapshotVersion() {
-        return filename.matches(format("^%1$s-%2$s-\\d{8}\\.\\d{6}-\\d{1,6}(\\.%3$s){1,2}$",
+        return filename.matches(format("^%1$s-%2$s-\\d{8}\\.\\d{6}-\\d{1,6}(-%3$s)?(\\.%4$s){1,2}$",
                 artifactId,
                 version.substring(0, version.length() - "-SNAPSHOT".length()),
+                ID_REGEX,
                 WORD_REGEX));
     }
 }

@@ -18,7 +18,8 @@ class ArtifactFilenameValidatorTest {
                 Arguments.of(new ArtifactFilenameValidator("b-1-sources.jar", "1", "b")),
                 Arguments.of(new ArtifactFilenameValidator("b-1-javadoc.jar", "1", "b")),
                 Arguments.of(new ArtifactFilenameValidator("b-1-jdk11.jar", "1", "b")),
-                Arguments.of(new ArtifactFilenameValidator("bar-1.0.2-20201023.142512-1.jar", "1.0.2-SNAPSHOT", "bar"))
+                Arguments.of(new ArtifactFilenameValidator("b-1.0.2-20201023.142512-1.jar", "1.0.2-SNAPSHOT", "b")),
+                Arguments.of(new ArtifactFilenameValidator("b-4.1.53-20201112.210114-1-linux-x86_64.jar", "4.1.53-SNAPSHOT","b"))
         );
     }
 

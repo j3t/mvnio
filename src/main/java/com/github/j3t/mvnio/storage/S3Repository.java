@@ -1,8 +1,9 @@
-package com.github.j3t.mvnio.s3;
+package com.github.j3t.mvnio.storage;
 
-import com.github.j3t.mvnio.s3.FluxByteBufferResponseTransformer.Result;
 import lombok.NonNull;
 import org.reactivestreams.Publisher;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -10,7 +11,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import java.nio.ByteBuffer;
 
 public interface S3Repository {
-    Mono<Result> download(@NonNull String bucket,
+    Mono<Download> download(@NonNull String bucket,
                           @NonNull String key);
 
     Mono<PutObjectResponse> upload(@NonNull String bucket,
@@ -21,4 +22,8 @@ public interface S3Repository {
 
     Mono<HeadObjectResponse> head(@NonNull String bucket,
                                   @NonNull String key);
+
+    Flux<String> metadata(@NonNull String bucket, String startAfter, int limit);
+
+    Flux<String> list(@NonNull String bucket, @NonNull String path);
 }

@@ -1,8 +1,8 @@
 package com.github.j3t.mvnio;
 
-import com.github.j3t.mvnio.s3.S3CredentialsWebFilter;
-import com.github.j3t.mvnio.s3.S3Repository;
-import com.github.j3t.mvnio.s3.S3RepositoryS3AsyncClientImpl;
+import com.github.j3t.mvnio.storage.S3CredentialsWebFilter;
+import com.github.j3t.mvnio.storage.S3Repository;
+import com.github.j3t.mvnio.storage.S3RepositoryS3AsyncClientImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

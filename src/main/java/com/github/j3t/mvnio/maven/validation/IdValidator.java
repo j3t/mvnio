@@ -12,8 +12,8 @@ import static java.lang.String.format;
  */
 public class IdValidator implements Validator {
     static final String WORD_REGEX = "[\\w\\d]{1,20}";
-    static final String ID_REGEX = format("^(%1$s[\\.-]){0,20}%1$s$", WORD_REGEX);
-    private static final Pattern ID_PATTERN = Pattern.compile(ID_REGEX);
+    static final String ID_REGEX = format("(%1$s[\\.-]){0,20}%1$s", WORD_REGEX);
+    private static final Pattern ID_PATTERN = Pattern.compile("^"+ID_REGEX+"$");
 
     private final String id;
 

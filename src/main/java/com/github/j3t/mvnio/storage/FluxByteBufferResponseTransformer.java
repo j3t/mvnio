@@ -1,6 +1,5 @@
-package com.github.j3t.mvnio.s3;
+package com.github.j3t.mvnio.storage;
 
-import lombok.Data;
 import reactor.core.publisher.Flux;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -9,24 +8,27 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
-public class FluxByteBufferResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, FluxByteBufferResponseTransformer.Result> {
-    private CompletableFuture<Result> future = new CompletableFuture<>();
-    private Result result = new Result();
+public class FluxByteBufferResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, Download> {
+    private CompletableFuture<Download> future = new CompletableFuture<>();
+    private Download.DownloadBuilder downloadBuilder = new Download.DownloadBuilder();
 
     @Override
-    public CompletableFuture<Result> prepare() {
+    public CompletableFuture<Download> prepare() {
         return future;
     }
 
     @Override
     public void onResponse(GetObjectResponse sdkResponse) {
-        this.result.sdkResponse = sdkResponse;
+        downloadBuilder
+                .contentLength(sdkResponse.contentLength())
+                .contentType(sdkResponse.contentType());
     }
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        result.flux = Flux.from(publisher);
-        future.complete(result);
+        future.complete(downloadBuilder
+                .content(Flux.from(publisher))
+                .build());
     }
 
     @Override
@@ -34,9 +36,4 @@ public class FluxByteBufferResponseTransformer implements AsyncResponseTransform
         future.completeExceptionally(error);
     }
 
-    @Data
-    public class Result {
-        private Flux<ByteBuffer> flux;
-        private GetObjectResponse sdkResponse;
-    }
 }

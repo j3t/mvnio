@@ -6,6 +6,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class MinioMcContainer extends GenericContainer<MinioMcContainer> {
 
@@ -55,4 +56,7 @@ public class MinioMcContainer extends GenericContainer<MinioMcContainer> {
         execSecure("echo -n \"%s\" | mc pipe test-minio/%s/%s", content, bucket, key);
     }
 
+    public void createObject(String bucket, String key) throws IOException, InterruptedException {
+        createObject(bucket, key, UUID.randomUUID().toString());
+    }
 }
