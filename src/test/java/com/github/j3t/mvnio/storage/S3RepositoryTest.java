@@ -7,13 +7,14 @@ import static com.github.j3t.mvnio.storage.S3CredentialsWebFilter.S3_CREDENTIALS
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.github.j3t.mvnio.error.NotAuthorizedException;
+import com.github.j3t.mvnio.error.ClientError;
 
 import reactor.test.StepVerifier;
 import reactor.util.context.Context;
@@ -68,7 +69,7 @@ class S3RepositoryTest {
         StepVerifier.create(s3Repository.head("releases", randomAlphanumeric(32)))
 
                 // THEN
-                .verifyError(NotAuthorizedException.class);
+                .verifyErrorMatches(p -> ((ClientError) p).getReturnCode() == 401);
     }
 
     @Test
@@ -80,7 +81,7 @@ class S3RepositoryTest {
                         .contextWrite(this::injectCredentials))
 
                 // THEN
-                .verifyError(NoSuchKeyException.class); // unfortunately, S3 throws NoSuchKeyException instead of NoSuchBucketException
+                .verifyError(NoSuchKeyException.class);
     }
 
     @Test

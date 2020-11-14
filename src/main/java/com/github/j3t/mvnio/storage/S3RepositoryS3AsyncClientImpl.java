@@ -1,6 +1,6 @@
 package com.github.j3t.mvnio.storage;
 
-import com.github.j3t.mvnio.error.NotAuthorizedException;
+import com.github.j3t.mvnio.error.ClientError;
 
 import lombok.NonNull;
 import org.reactivestreams.Publisher;
@@ -123,7 +123,7 @@ public class S3RepositoryS3AsyncClientImpl implements S3Repository {
             if (ctx.hasKey(S3_CREDENTIALS_PROVIDER)) {
                 builder.credentialsProvider(ctx.get(S3_CREDENTIALS_PROVIDER));
             } else {
-                throw new NotAuthorizedException();
+                throw new ClientError(401, "S3 Credentials not provided");
             }
         };
     }

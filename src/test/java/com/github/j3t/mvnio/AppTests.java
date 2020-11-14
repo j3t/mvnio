@@ -1,24 +1,35 @@
 package com.github.j3t.mvnio;
 
+import static org.hamcrest.Matchers.is;
+import static org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation.document;
+import static org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation.documentationConfiguration;
+import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
+
+import java.util.Arrays;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.http.HttpDocumentation;
+import org.springframework.restdocs.templates.TemplateFormats;
+import org.springframework.restdocs.webtestclient.WebTestClientSnippetConfigurer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
 import testcontainers.MinioContainer;
 import testcontainers.MinioMcContainer;
-
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.is;
-import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
 /**
  * Checks that basic functionality works as expected. The test environment consists of a webserver which actually
@@ -29,14 +40,13 @@ import static org.springframework.web.reactive.function.client.ExchangeFilterFun
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 class AppTests {
-
     public static final String EXPECTED_XML = "<abc></abc>";
     @Container
     static MinioContainer minio = new MinioContainer();
-
     @Container
     static MinioMcContainer mc = new MinioMcContainer(minio);
-
+    @RegisterExtension
+    final RestDocumentationExtension restDocumentation = new RestDocumentationExtension("docs/app-tests");
     @Autowired
     ApplicationContext context;
 
@@ -49,30 +59,26 @@ class AppTests {
     }
 
     @BeforeEach
-    void initTestBucket() throws Exception {
-        this.webTestClient = WebTestClient.bindToApplicationContext(this.context)
-                .configureClient()
-                .filter(basicAuthentication(minio.accessKey(), minio.secretKey()))
-                .build();
+    void initTestBucket(RestDocumentationContextProvider restDocumentation) throws Exception {
+        this.webTestClient = createWebClient(restDocsFilter(restDocumentation), basicAuthentication(minio.accessKey(), minio.secretKey()));
         mc.deleteBucket("releases");
         mc.createBucket("releases");
     }
 
     @Test
-    void testAuthenticateChallenge() {
+    void testAuthenticateChallenge(RestDocumentationContextProvider restDocumentation) {
         // GIVEN
 
         // WHEN
-        WebTestClient.bindToApplicationContext(this.context)
-                .configureClient()
-                .build()
+        createWebClient(restDocsFilter(restDocumentation))
                 .get()
                 .uri("/maven/releases")
                 .exchange()
 
                 // THEN
                 .expectStatus().isUnauthorized()
-                .expectHeader().value("WWW-Authenticate", is("Basic realm=\"s3\", bucket=\"releases\""));
+                .expectHeader().value("WWW-Authenticate", is("Basic realm=\"s3\", bucket=\"releases\""))
+                .expectBody().consumeWith(document("unauthorized"));
     }
 
     @Test
@@ -80,10 +86,11 @@ class AppTests {
         // GIVEN
 
         // WHEN
-        uploadExchange(UUID.randomUUID().toString(), "/foo/bar/1.0.1/bar-1.0.1.pom")
+        uploadExchange("third-party", "/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
-                .expectStatus().isNotFound();
+                .expectStatus().isNotFound()
+                .expectBody().consumeWith(document("repositoryNotExists"));
     }
 
     @Test
@@ -116,20 +123,22 @@ class AppTests {
         downloadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
-                .expectStatus().isNotFound();
+                .expectStatus().isNotFound()
+                .expectBody().consumeWith(document("artifactNotExists"));
     }
 
     @Test
     void testArtifactIsUploadedAndAvailable() {
         // GIVEN
         uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
-                .expectStatus().isCreated();
+                .expectStatus().isCreated()
+                .expectBody().consumeWith(document("upload"));
 
         // WHEN
         downloadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
-                .expectStatus().isOk().expectBody().xml(EXPECTED_XML);
+                .expectStatus().isOk().expectBody().xml(EXPECTED_XML).consumeWith(document("download"));
     }
 
     @Test
@@ -141,7 +150,8 @@ class AppTests {
         uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
 
                 // THEN
-                .expectStatus().isForbidden();
+                .expectStatus().isForbidden()
+                .expectBody().consumeWith(document("artifactAlreadyExists"));
     }
 
     @Test
@@ -152,7 +162,8 @@ class AppTests {
         uploadExchange("/foo/bar/1.0.1/foo-1.0.1.pom")
 
                 // THEN
-                .expectStatus().isBadRequest();
+                .expectStatus().isBadRequest()
+                .expectBody().consumeWith(document("artifactPathNotValid"));
     }
 
     @Test
@@ -177,15 +188,13 @@ class AppTests {
 
                 // THEN
                 .expectStatus().isOk()
-                .expectBody().json("[\"/foo/bar/maven-metadata.xml\"]");
+                .expectBody().json("[\"/foo/bar/maven-metadata.xml\"]").consumeWith(document("metadata"));
     }
 
     @Test
     void testList() {
         // GIVEN
         uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom").expectStatus().isCreated();
-        uploadExchange("/foo/bar/1.0.2/bar-1.0.2.pom").expectStatus().isCreated();
-        uploadExchange("/foo/bar/1.0.3/bar-1.0.3.pom").expectStatus().isCreated();
         uploadExchange("/foo/bar/maven-metadata.xml").expectStatus().isCreated();
 
         // WHEN
@@ -193,7 +202,7 @@ class AppTests {
 
                 // THEN
                 .expectStatus().isOk()
-                .expectBody().json("[\"1.0.1/\",\"1.0.2/\",\"1.0.3/\",\"maven-metadata.xml\"]");
+                .expectBody().json("[\"1.0.1/\",\"maven-metadata.xml\"]").consumeWith(document("list"));
     }
 
     @ParameterizedTest
@@ -209,9 +218,16 @@ class AppTests {
                 .expectStatus().isCreated();
     }
 
+    private WebTestClient createWebClient(ExchangeFilterFunction...filters) {
+        return WebTestClient.bindToApplicationContext(this.context)
+                .configureClient()
+                .filters(exchangeFilterFunctions -> exchangeFilterFunctions.addAll(Arrays.asList(filters)))
+                .build();
+    }
+
     private WebTestClient.ResponseSpec list(String path) {
         return webTestClient.get()
-                .uri("/list/releases"+path)
+                .uri("/list/releases" + path)
                 .exchange();
     }
 
@@ -242,5 +258,12 @@ class AppTests {
                 .contentLength(11)
                 .bodyValue(EXPECTED_XML)
                 .exchange();
+    }
+
+    private WebTestClientSnippetConfigurer restDocsFilter(RestDocumentationContextProvider restDocumentation) {
+        return documentationConfiguration(restDocumentation)
+                .snippets()
+                .withDefaults(HttpDocumentation.httpRequest(), HttpDocumentation.httpResponse())
+                .withTemplateFormat(TemplateFormats.markdown());
     }
 }

@@ -12,7 +12,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Slf4j
 @ControllerAdvice
@@ -38,16 +39,18 @@ public class ErrorHandler {
         HttpHeaders httpHeaders = new HttpHeaders();
         String message = e.getMessage();
 
-        if (e instanceof NotAuthorizedException) {
-            status = 401;
-            String bucket = getBucket(swe);
-            httpHeaders.set("WWW-Authenticate", "Basic realm=\"s3\", bucket=\"" + bucket + "\"");
-        } else if (e instanceof ArtifactAlreadyExistsException) {
-            status = 403;
-        } else if (e instanceof ArtifactPathNotValidException) {
-            status = 400;
-        } else if (e instanceof S3Exception) {
-            status = ((S3Exception) e).statusCode();
+        if (e instanceof ClientError) {
+            status = ((ClientError) e).getReturnCode();
+            if (status == 401) {
+                String bucket = getBucket(swe);
+                httpHeaders.set("WWW-Authenticate", "Basic realm=\"s3\", bucket=\"" + bucket + "\"");
+            }
+        } else if (e instanceof NoSuchBucketException) {
+            status = 404;
+            message = "Repository not exists";
+        } else if (e instanceof NoSuchKeyException) {
+            status = 404;
+            message = "Artifact not exists";
         }
 
         logError(status, e);

@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.j3t.mvnio.AppProperties;
-import com.github.j3t.mvnio.error.ArtifactAlreadyExistsException;
-import com.github.j3t.mvnio.error.ArtifactPathNotValidException;
+import com.github.j3t.mvnio.error.ClientError;
 import com.github.j3t.mvnio.maven.validation.ArtifactPathValidator;
 import com.github.j3t.mvnio.maven.validation.MetadataPathValidator;
 import com.github.j3t.mvnio.storage.S3Repository;
@@ -41,12 +40,11 @@ public class RepositoryController {
     }
 
     @PutMapping(value = "/maven/{repository}/{*artifactPath}")
-    public Mono<ResponseEntity<Void>> upload(
-            @RequestHeader(value = "content-type", required = false) MediaType contentType,
-            @RequestHeader(value = "content-length") long contentLength,
-            @PathVariable String repository,
-            @PathVariable String artifactPath,
-            @RequestBody Flux<ByteBuffer> file) {
+    public Mono<ResponseEntity<Void>> upload(@RequestHeader(value = "content-type", required = false) MediaType contentType,
+                                             @RequestHeader(value = "content-length") long contentLength,
+                                             @PathVariable String repository,
+                                             @PathVariable String artifactPath,
+                                             @RequestBody Flux<ByteBuffer> file) {
 
         // check: artifact path is valid?
         return validate(repository, artifactPath)
@@ -72,9 +70,9 @@ public class RepositoryController {
     }
 
     @GetMapping(value = "/metadata/{repository}")
-    public Mono<List<String>> poms(@PathVariable String repository,
-                          @RequestParam(required = false) String startAfter,
-                          @RequestParam(required = false, defaultValue = "10") int limit) {
+    public Mono<List<String>> metadata(@PathVariable String repository,
+                                       @RequestParam(required = false) String startAfter,
+                                       @RequestParam(required = false, defaultValue = "10") int limit) {
         return s3.metadata(repository, startAfter, limit).collectList();
     }
 
@@ -86,8 +84,7 @@ public class RepositoryController {
     /**
      * Checks that a given artifact not already exists and can be uploaded. Maven metadata files are ignored.
      *
-     * @throws ArtifactAlreadyExistsException if the artifact already exists.
-     * @throws ArtifactPathNotValidException  if the artifact path is not valid (requires enabled validation).
+     * @throws ClientError if the artifact already exists if path is not valid
      */
     private Mono<Void> validate(@NonNull String repository,
                                 @NonNull String artifactPath) {
@@ -100,11 +97,11 @@ public class RepositoryController {
                 // yes -> check: is artifact path valid?
                 .flatMap(errorMPV -> new ArtifactPathValidator(artifactPath).validate()
                         // no -> throw an error
-                        .flatMap(errorAPV -> Mono.error(new ArtifactPathNotValidException()))
+                        .flatMap(errorAPV -> Mono.error(new ClientError(400, "Path validation failed")))
                         // yes -> check: file exists?
                         .switchIfEmpty(s3.head(repository, key(artifactPath))
                                 // yes -> throw an error
-                                .flatMap(headResponse -> Mono.error(new ArtifactAlreadyExistsException()))
+                                .flatMap(headResponse -> Mono.error(new ClientError(403, "Artifact already exists")))
                                 // no -> handle the exception and return something
                                 .onErrorReturn(NoSuchKeyException.class, false)))
                 // no -> return empty (upload artifact approved)

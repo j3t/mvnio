@@ -14,6 +14,7 @@ Another alternative is a so called maven-wagon which adds S3 support to your pro
 # Features
 * [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final)
 * upload and download artifacts
+* browse artifacts and retrieve metadata easily
 * stateless and horizontal scalable
 * support for any S3 compatible storage provider
 * multiple repositories
@@ -26,6 +27,8 @@ The diagram below shows how `mvnio` handles maven client requests and how they a
 ![Architecture](https://plantuml.j3t.urown.cloud/png/ootBKz2rKyWjoylCLx1IS7SDKSWlKWW83Od9qyzDB4lDqwykIYt8ByuioI-ghDMlJYmgoKnBJ2wfvO9e0UeDDWPfJ2tnJyfAJIu1Qo-5ScBoaagJirDBR94DqL78JgsqHJ89Q03C2GXJWGm0)
 
 In general, a maven client interacts with a maven repository when it tries to `install` an artifact with a `GET` request and with a `PUT` request when it wants to `deploy` an artifact. For example, when a client requests `GET /maven/releases/foo/bar/1.0.1/bar-1.0.1.pom` from `mvnio` then `mvnio` tries to get an object with key `foo/bar/1.0.1/bar-1.0.1.pom` in bucket `releases` from `S3`.
+
+The [AppTests](src/test/java/com/github/j3t/mvnio/AppTests.java) and the corresponding [requests/responses](docs/app-tests) could be helpful as well.
 
 # Configuration
 [AppProperties](src/main/java/com/github/j3t/mvnio/AppProperties.java) contains a list of all available configuration parameters, and their default values.  
@@ -102,14 +105,12 @@ The artifacts should now be available in `MinIO`.
 * open http://localhost:9000 in your browser (accessKey: `admin`, secretKey: `long-password`)
 
 # Roadmap
-* browse artifacts
 * mirror for central (light version, just proxy the request)
 * alternative user/account management
     * independent of S3
     * central configuration (via `vault` for example)
     * storage provider is configurable per repository
     * proxy/mirror for repositories (central and external)
-* Admin UI
 
 # Pitfalls
 * users accessKey/secretKey in S3, are used as username/password in Maven (see `~/.m2/settings.xml`)

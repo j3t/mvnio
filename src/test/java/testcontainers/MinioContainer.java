@@ -17,8 +17,8 @@ public class MinioContainer extends GenericContainer<MinioContainer> {
 
         setWaitStrategy(Wait.forHttp("/minio/health/ready").forStatusCode(200));
 
-        withEnv("MINIO_ACCESS_KEY", UUID.randomUUID().toString());
-        withEnv("MINIO_SECRET_KEY", UUID.randomUUID().toString());
+        withEnv("MINIO_ACCESS_KEY", "admin");
+        withEnv("MINIO_SECRET_KEY", "long-password");
         withCommand("server /data");
         withExposedPorts(9000);
         withNetwork(Network.newNetwork());  // we need a dedicated network otherwise mc cannot participate
