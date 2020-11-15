@@ -5,9 +5,7 @@ import static org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtil
 
 import static com.github.j3t.mvnio.storage.S3CredentialsWebFilter.S3_CREDENTIALS_PROVIDER;
 
-import java.io.IOException;
 import java.net.URI;
-import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -184,6 +182,58 @@ class S3RepositoryTest {
 
                 // THEN
                 .expectNext("1.0.0/", "maven-metadata.xml")
+                .verifyComplete();
+    }
+
+    @Test
+    void testListWithoutLeadingSlash() {
+        // WHEN
+        StepVerifier
+                .create(s3Repository
+                        .list("releases", "a/b")
+                        .contextWrite(this::injectCredentials))
+
+                // THEN
+                .expectNext("1.0.0/", "maven-metadata.xml")
+                .verifyComplete();
+    }
+
+    @Test
+    void testListWittTrailingSlash() {
+        // WHEN
+        StepVerifier
+                .create(s3Repository
+                        .list("releases", "a/b/")
+                        .contextWrite(this::injectCredentials))
+
+                // THEN
+                .expectNext("1.0.0/", "maven-metadata.xml")
+                .verifyComplete();
+    }
+
+    @Test
+    void testListRoot() {
+        // WHEN
+        StepVerifier
+                .create(s3Repository
+                        .list("releases", "")
+                        .contextWrite(this::injectCredentials))
+
+                // THEN
+                .expectNext("a/")
+                .verifyComplete();
+    }
+
+    @Test
+    void testListRootWithSlash() {
+        // WHEN
+        StepVerifier
+                .create(s3Repository
+                        .list("releases", "/")
+                        .contextWrite(this::injectCredentials))
+
+                // THEN
+                .expectNext("a/")
                 .verifyComplete();
     }
 
