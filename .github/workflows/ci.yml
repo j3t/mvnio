@@ -6,7 +6,7 @@ name: CI
 on:
   push:
     branches: [ master ]
-  pull_request:
+  pull_request_target:
     branches: [ master ]
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test]
     runs-on: ubuntu-latest
-    environment: development
+    environment: production
     steps:
       - name: Cache local Maven repository
         uses: actions/cache@v2.1.4
