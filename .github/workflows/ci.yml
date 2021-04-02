@@ -12,6 +12,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: development
     steps:
       - name: Cache local Maven repository
         uses: actions/cache@v2.1.4
@@ -40,6 +41,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test]
     runs-on: ubuntu-latest
+    environment: development
     steps:
       - name: Cache local Maven repository
         uses: actions/cache@v2.1.4
