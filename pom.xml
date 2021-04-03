@@ -11,14 +11,12 @@
     <description>Maven repository implementation with S3/MinIO as storage provider</description>
 
     <properties>
+        <!-- general settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <spring-boot.version>2.4.4</spring-boot.version>
-        <awssdk.version>2.16.33</awssdk.version>
-        <testcontainers.version>1.15.2</testcontainers.version>
 
+        <!-- sonar settings -->
         <sonar.projectKey>j3t_mvnio</sonar.projectKey>
         <sonar.organization>jtlabs</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -26,6 +24,15 @@
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.language>java</sonar.language>
+
+        <!-- dependency versions -->
+        <spring-boot.version>2.4.4</spring-boot.version>
+        <awssdk.version>2.16.33</awssdk.version>
+        <testcontainers.version>1.15.2</testcontainers.version>
+        <!-- use the latest surefire version otherwise junit 5 tests are not executed -->
+        <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+        <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+        <spring-restdocs-webtestclient.version>2.0.5.RELEASE</spring-restdocs-webtestclient.version>
     </properties>
 
     <dependencyManagement>
@@ -102,7 +109,7 @@
         <dependency>
             <groupId>org.springframework.restdocs</groupId>
             <artifactId>spring-restdocs-webtestclient</artifactId>
-            <version>2.0.5.RELEASE</version>
+            <version>${spring-restdocs-webtestclient.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -110,11 +117,10 @@
     <build>
         <pluginManagement>
             <plugins>
-                <!-- use the latest surefire version otherwise junit 5 tests are not executed -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.2</version>
+                    <version>${maven-surefire-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -122,7 +128,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.6</version>
+                <version>${jacoco-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -142,6 +148,11 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.8.0.2131</version>
             </plugin>
         </plugins>
     </build>
