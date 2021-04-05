@@ -20,8 +20,10 @@ jobs:
         uses: actions/cache@v2.1.4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('random-cache-key') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-mvn-${{ hashFiles('**/*.pom') }}
+          restore-keys: |
+            ${{ runner.os }}-mvn-${{ hashFiles('**/*.pom') }}
+            ${{ runner.os }}-mvn-
       - name: Cache SonarCloud packages
         uses: actions/cache@v2.1.4
         with:
@@ -46,15 +48,14 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     steps:
-      - name: Generate random cache key to ensure the cache directories are saved after build
-        id: random-cache-key
-        run: head /dev/random -c 32 > random-cache-key
       - name: Cache local Maven repository
         uses: actions/cache@v2.1.4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('random-cache-key') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-mvn-${{ hashFiles('**/*.pom') }}
+          restore-keys: |
+            ${{ runner.os }}-mvn-${{ hashFiles('**/*.pom') }}
+            ${{ runner.os }}-mvn-
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
