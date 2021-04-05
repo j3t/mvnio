@@ -13,26 +13,28 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Cache local Maven repository
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
-            ${{ runner.os }}-maven-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar-${{ hashFiles('pom.xml') }}
-          restore-keys: ${{ runner.os }}-sonar-
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - uses: actions/setup-java@v1
         with:
           java-version: 11
+      - name: Cache local Maven repository
+        uses: actions/cache@v2.1.4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v2.1.4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-sonar-
       - name: Build and Test
         run: mvn -B verify
       - name: Analyze
@@ -45,21 +47,21 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     steps:
-      - name: Cache local Maven repository
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
-            ${{ runner.os }}-maven-
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
           java-version: 11
-      - name: Login with DockerHub credentials
-        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+      - name: Cache local Maven repository
+        uses: actions/cache@v2.1.4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-
       - name: Build Docker image
         run: mvn -B spring-boot:build-image -Dspring-boot.build-image.imageName=jtlabs/mvnio:latest -DskipTests
+      - name: Login with DockerHub credentials
+        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
       - name: Publish Docker image
         run: docker push docker.io/jtlabs/mvnio:latest
