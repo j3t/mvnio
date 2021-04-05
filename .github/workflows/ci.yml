@@ -13,18 +13,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Generate random cache key to ensure the cache directories are saved after build
+        id: random-cache-key
+        run: head /dev/random -c 32 > random-cache-key
       - name: Cache local Maven repository
         uses: actions/cache@v2.1.4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('~/.m2/repository/**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-${{ hashFiles('~/.m2/repository/**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('random-cache-key') }}
+          restore-keys: ${{ runner.os }}-maven-
       - name: Cache SonarCloud packages
         uses: actions/cache@v2.1.4
         with:
           path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          key: ${{ runner.os }}-sonar-${{ hashFiles('random-cache-key') }}
+          restore-keys: ${{ runner.os }}-sonar-
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
