@@ -55,10 +55,10 @@ jobs:
         uses: actions/cache@v2.1.4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-dockerize-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-dockerize-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-dockerize-
       - name: Build Docker image
         run: mvn -B spring-boot:build-image -Dspring-boot.build-image.imageName=jtlabs/mvnio:latest -DskipTests
       - name: Login with DockerHub credentials
