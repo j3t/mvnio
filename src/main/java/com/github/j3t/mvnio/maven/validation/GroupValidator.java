@@ -26,7 +26,7 @@ public class GroupValidator implements Validator {
     private Mono<Error> notEmptyPath() {
         return Flux.just(groupIdParts)
                 .flatMap(part -> new IdValidator(part).validate())
-                .limitRequest(1)
+                .take(1, true)
                 .next()
                 .map(e -> Error.builder().value(Arrays.toString(groupIdParts)).message("GroupId invalid!").build());
     }

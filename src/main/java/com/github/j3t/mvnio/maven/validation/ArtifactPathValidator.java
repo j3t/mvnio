@@ -33,7 +33,7 @@ public class ArtifactPathValidator implements Validator {
                 new VersionValidator(version),
                 new ArtifactFilenameValidator(fileName, version, artifactId))
                 .flatMap(Validator::validate)
-                .limitRequest(1)
+                .take(1, true)
                 .next()
                 .map(e -> Error.builder().value(path).message("Artifact-Path is not valid!").build());
     }

@@ -35,8 +35,8 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseBody
     public Mono<ResponseEntity<String>> handleException(Exception e, ServerWebExchange swe) {
-        int status = 500;
-        HttpHeaders httpHeaders = new HttpHeaders();
+        var status = 500;
+        var httpHeaders = new HttpHeaders();
         String message = e.getMessage();
 
         if (e instanceof ClientError) {
