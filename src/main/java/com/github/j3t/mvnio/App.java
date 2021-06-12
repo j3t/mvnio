@@ -22,7 +22,7 @@ public class App {
 
     @Bean
     AppProperties appProperties() {
-        AppProperties appProperties = new AppProperties();
+        var appProperties = new AppProperties();
         log.info("appProperties: " + appProperties);
         return appProperties;
     }

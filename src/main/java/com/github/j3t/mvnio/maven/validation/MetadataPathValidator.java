@@ -37,7 +37,7 @@ public class MetadataPathValidator implements Validator {
                 new VersionValidator(versionOrArtifactId),
                 new MetadataFilenameValidator(fileName))
                 .flatMap(Validator::validate)
-                .limitRequest(1)
+                .take(1, true)
                 .next().map(e -> Error.builder().value(path).message("Not a valid metadata-path!").build());
     }
 }

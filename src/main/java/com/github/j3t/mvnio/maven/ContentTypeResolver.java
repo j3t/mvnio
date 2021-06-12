@@ -5,10 +5,8 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,14 +33,14 @@ public class ContentTypeResolver {
     }
 
     private static Map<String, MediaType> parseMimeTypes() {
-        URL url = ContentTypeResolver.class.getResource("/com/github/j3t/mvnio/mime.types");
+        var url = ContentTypeResolver.class.getResource("/com/github/j3t/mvnio/mime.types");
 
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(url.toURI()), StandardCharsets.UTF_8)) {
+        try (var reader = Files.newBufferedReader(Paths.get(url.toURI()), StandardCharsets.UTF_8)) {
             return reader.lines()
                     .filter(line -> !line.startsWith("#"))
                     .map(line -> new ArrayList<>(asList(tokenizeToStringArray(line, " \t\n\r\f"))))
                     .flatMap(list -> {
-                        MediaType mediaType = parseMediaType(list.get(0));
+                        var mediaType = parseMediaType(list.get(0));
                         return list.subList(1, list.size()).stream().map(ext -> Tuples.of(ext, mediaType));
                     })
                     // map extension to the first MediaType found and drop all others
