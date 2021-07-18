@@ -2,14 +2,14 @@
 [![Docker Tags](https://img.shields.io/docker/v/jtlabs/mvnio)](https://hub.docker.com/r/jtlabs/mvnio/tags)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=j3t_mvnio&metric=alert_status)](https://sonarcloud.io/dashboard?id=j3t_mvnio)
  
-`mvnio` is a repository for Maven artifacts which uses S3 buckets to store and provide artifacts in a horizontal scalable fashion. 
+`mvnio` is a horizontal scalable Maven Repository Manager with first class support for S3 buckets. 
 
-The underlying webserver is implemented with [reactive streams](https://www.reactive-streams.org/), or more specific by using [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux) which uses [project-reactor](https://projectreactor.io/) under the hood. For the S3 bucket interaction, the [Amazon Async S3 client library](https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/basics-async.html) is used, which is also a non-blocking API and it supports other S3 compatible storage providers as well (e.g. `MinIO`).
+The underlying webserver is implemented with [reactive streams](https://www.reactive-streams.org/), or more specific by using [Spring webflux](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#webflux) which uses [project-reactor](https://projectreactor.io/) under the hood. For the S3 bucket interaction, the [Amazon Async S3 client library](https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/basics-async.html) is used, which is also a non-blocking API, and it has support for other S3 compatible storage providers as well (e.g. `MinIO`).
 
 # Motivation
-There are plenty of [Maven Repository Managers](https://maven.apache.org/repository-management.html#available-repository-managers) and they are great and have a lot of features, but most of them doesn't support S3 buckets at all or not very well or require a special license.
+There are plenty of [Maven Repository Managers](https://maven.apache.org/repository-management.html#available-repository-managers) and they are great and have a lot of features, but most of them don't support S3 buckets at all or not very well or require a special license.
 
-Another alternative is a so called maven-wagon which adds S3 support to your project. There are also plenty of them ([1](https://github.com/gkatzioura/CloudStorageMaven), [2](https://github.com/jcaddel/maven-s3-wagon), [3](https://github.com/seahen/maven-s3-wagon), ...), but they require an extra configuration which often is not supported by third-party products. For example Jenkins picks not up the extra configuration (see https://issues.jenkins-ci.org/browse/JENKINS-30058). They also cannot take into account that `Maven artifacts are immutable`. You could lock the objects in S3 but then the metadata cannot be updated anymore.
+As alternative, you could use a so called maven-wagon which basically adds S3 bucket support to the maven client. There are also plenty of them ([1](https://github.com/gkatzioura/CloudStorageMaven), [2](https://github.com/jcaddel/maven-s3-wagon), [3](https://github.com/seahen/maven-s3-wagon), ...), but they require an extra configuration, which in fact often is not supported by third-party products. For example Jenkins picks not up the extra configuration (see https://issues.jenkins-ci.org/browse/JENKINS-30058). They also cannot take into account that `Maven artifacts are immutable`. You could lock the objects in S3 but then the metadata cannot be updated anymore.
 
 # Features
 * [Standard Repository Layout](https://cwiki.apache.org/confluence/display/MAVENOLD/Repository+Layout+-+Final)
@@ -24,20 +24,21 @@ Another alternative is a so called maven-wagon which adds S3 support to your pro
 # How it Works
 The diagram below shows how `mvnio` handles maven client requests and how they are mapped to the S3 storage provider.
 
-![Architecture](https://plantuml.j3t.urown.cloud/png/ootBKz2rKyWjoylCLx1IS7SDKSWlKWW83Od9qyzDB4lDqwykIYt8ByuioI-ghDMlJYmgoKnBJ2wfvO9e0UeDDWPfJ2tnJyfAJIu1Qo-5ScBoaagJirDBR94DqL78JgsqHJ89Q03C2GXJWGm0)
+![Architecture](https://puml.jtlab.de/png/ootBKz2rKyWjoylCLx1IS7SDKSWlKWW83Od9qyzDB4lDqwykIYt8ByuioI-ghDMlJYmgoKnBJ2wfvO9e0UeDDWPfJ2tnJyfAJIu1Qo-5ScBoaagJirDBR94DqL78JgsqHJ89Q03C2GXJWGm0)
 
 In general, a maven client interacts with a maven repository when it tries to `install` an artifact with a `GET` request and with a `PUT` request when it wants to `deploy` an artifact. For example, when a client requests `GET /maven/releases/foo/bar/1.0.1/bar-1.0.1.pom` from `mvnio` then `mvnio` tries to get an object with key `foo/bar/1.0.1/bar-1.0.1.pom` in bucket `releases` from `S3`.
 
-The [AppTests](src/test/java/com/github/j3t/mvnio/AppTests.java) and the corresponding [requests/responses](docs/app-tests) could be helpful as well.
+The [AppTests](src/test/java/com/github/j3t/mvnio/AppTests.java) and the corresponding [requests and responses](docs/app-tests) could also be helpful if you want more details.
 
 # Configuration
 [AppProperties](src/main/java/com/github/j3t/mvnio/AppProperties.java) contains a list of all available configuration parameters, and their default values.  
 
 # Security
-`mvnio` expects a `Basic Authorization` Header sent along with any client request. Client credentials will not be validated by `mvnio` but they will be required to access the corresponding bucket in S3. This means, the clients underlying user needs permissions to access the S3 bucket which are as follows:
+`mvnio` expects a `Basic Authorization` Header sent along with any client request. The header contains the S3 Credentials of the corresponding S3 Bucket. It also requires the following permissions:
 
 * `s3:GetObject` - to download artifacts
 * `s3:HeadObject` and `s3:PutObject` - to upload artifacts
+* `s3:ListBucket`- to request metadata or to list versions (optional)
 
 Note: ***Clients can bypass the repository and modify artifacts in S3 directly!***
 
