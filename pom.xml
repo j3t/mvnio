@@ -27,7 +27,7 @@
 
         <!-- dependency versions -->
         <spring-boot.version>2.5.2</spring-boot.version>
-        <awssdk.version>2.16.99</awssdk.version>
+        <awssdk.version>2.16.104</awssdk.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <!-- use the latest surefire version otherwise junit 5 tests are not executed -->
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
