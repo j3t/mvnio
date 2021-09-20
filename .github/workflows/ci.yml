@@ -39,6 +39,8 @@ jobs:
       - name: Build and Test
         run: mvn -B verify
       - name: Analyze
+        # see https://github.com/dependabot/dependabot-core/issues/3253#issuecomment-852541544
+        if: ${{ github.actor != 'dependabot[bot]' }}  # skip analysis step when build was triggered by dependabot 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
