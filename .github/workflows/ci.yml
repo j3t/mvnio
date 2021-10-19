@@ -29,6 +29,7 @@ jobs:
             ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
       - name: Cache SonarCloud packages
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: actions/cache@v2.1.6
         with:
           path: ~/.sonar/cache
@@ -39,6 +40,7 @@ jobs:
       - name: Build and Test
         run: mvn -B verify
       - name: Analyze
+        if: ${{ github.actor != 'dependabot[bot]' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
