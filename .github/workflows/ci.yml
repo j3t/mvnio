@@ -21,7 +21,7 @@ jobs:
           distribution: 'adopt'
           java-version: 11
       - name: Cache local Maven repository
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -30,7 +30,7 @@ jobs:
             ${{ runner.os }}-maven-
       - name: Cache SonarCloud packages
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}
@@ -56,7 +56,7 @@ jobs:
           distribution: 'adopt'
           java-version: 11
       - name: Cache local Maven repository
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-dockerize-${{ hashFiles('**/pom.xml') }}
