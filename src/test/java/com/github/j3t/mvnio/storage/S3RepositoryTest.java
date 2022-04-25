@@ -1,7 +1,7 @@
 package com.github.j3t.mvnio.storage;
 
-import static org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
-import static org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
+import static org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import static com.github.j3t.mvnio.storage.S3CredentialsWebFilter.S3_CREDENTIALS_PROVIDER;
 
