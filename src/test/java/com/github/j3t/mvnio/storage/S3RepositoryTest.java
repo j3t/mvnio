@@ -35,6 +35,7 @@ class S3RepositoryTest {
 
     S3Repository s3Repository = new S3RepositoryS3AsyncClientImpl(S3AsyncClient.builder()
             .region(Region.US_EAST_1)
+            .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
             .endpointOverride(URI.create(minio.getExternalAddress()))
             .build());
 
