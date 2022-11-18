@@ -5,9 +5,11 @@ import static org.springframework.restdocs.webtestclient.WebTestClientRestDocume
 import static org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation.documentationConfiguration;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -52,17 +54,27 @@ class AppTests {
 
     WebTestClient webTestClient;
 
+    static final String username = "app-test-username";
+
+    static final String password = "app-test-password";
+
     @DynamicPropertySource
     static void appProperties(DynamicPropertyRegistry registry) {
         registry.add("s3.override-endpoint", () -> true);
         registry.add("s3.endpoint", () -> minio.getExternalAddress());
     }
 
+    @BeforeAll
+    static void createS3Account() throws Exception {
+        mc.createUser(username, password);
+    }
+
     @BeforeEach
     void initTestBucket(RestDocumentationContextProvider restDocumentation) throws Exception {
-        this.webTestClient = createWebClient(restDocsFilter(restDocumentation), basicAuthentication(minio.accessKey(), minio.secretKey()));
+        this.webTestClient = createWebClient(restDocsFilter(restDocumentation), basicAuthentication(username, password));
         mc.deleteBucket("releases");
         mc.createBucket("releases");
+        mc.applyReadwritePolicy(username);
     }
 
     @Test
@@ -140,6 +152,20 @@ class AppTests {
                 // THEN
                 .expectStatus().isOk().expectBody().xml(EXPECTED_XML).consumeWith(document("download"));
     }
+
+    @Test
+    void testArtifactUploadedIsDenied() throws IOException, InterruptedException {
+        // GIVEN
+        mc.applyReadonlyPolicy(username);
+
+        // WHEN
+        uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
+
+                // THEN
+                .expectStatus().isForbidden()
+                .expectBody().consumeWith(document("uploadForbidden"));
+    }
+
 
     @Test
     void testArtifactIsImmutable() {

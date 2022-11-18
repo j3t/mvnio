@@ -59,4 +59,17 @@ public class MinioMcContainer extends GenericContainer<MinioMcContainer> {
     public void createObject(String bucket, String key) throws IOException, InterruptedException {
         createObject(bucket, key, UUID.randomUUID().toString());
     }
+
+    public void createUser(String username, String password) throws IOException, InterruptedException {
+        execSecure("mc admin user add test-minio %s %s", username, password);
+    }
+
+    public void applyReadonlyPolicy(String username) throws IOException, InterruptedException {
+        execSecure("mc admin policy set test-minio readonly user=%s", username);
+    }
+
+    public void applyReadwritePolicy(String username) throws IOException, InterruptedException {
+        execSecure("mc admin policy set test-minio readwrite user=%s", username);
+    }
+
 }
