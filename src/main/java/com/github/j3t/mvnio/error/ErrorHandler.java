@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Slf4j
 @ControllerAdvice
@@ -51,6 +52,8 @@ public class ErrorHandler {
         } else if (e instanceof NoSuchKeyException) {
             status = 404;
             message = "Artifact not exists";
+        } else if (e instanceof S3Exception) {
+            status = ((S3Exception) e).statusCode();
         }
 
         logError(status, e);
