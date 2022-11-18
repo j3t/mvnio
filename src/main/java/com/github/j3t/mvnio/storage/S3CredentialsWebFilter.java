@@ -9,7 +9,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
-import lombok.val;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -34,7 +33,7 @@ public class S3CredentialsWebFilter implements WebFilter {
 
         var base64Credentials = authorization.get(0).substring("Basic".length()).trim();
         var credentials = new String(Base64.getDecoder().decode(base64Credentials), UTF_8);
-        val values = credentials.split(":", 2);
+        var values = credentials.split(":", 2);
         AwsCredentialsProvider credentialsProvider = () -> AwsBasicCredentials.create(values[0], values[1]);
 
         return chain.filter(exchange)
