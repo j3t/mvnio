@@ -32,7 +32,7 @@
 
         <!-- dependency versions -->
         <awssdk.version>2.18.25</awssdk.version>
-        <testcontainers.version>1.17.5</testcontainers.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
         <spring-restdocs-webtestclient.version>3.0.0</spring-restdocs-webtestclient.version>
