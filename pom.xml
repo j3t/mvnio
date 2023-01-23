@@ -31,7 +31,7 @@
         <sonar.language>java</sonar.language>
 
         <!-- dependency versions -->
-        <awssdk.version>2.19.17</awssdk.version>
+        <awssdk.version>2.19.21</awssdk.version>
         <testcontainers.version>1.17.6</testcontainers.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
