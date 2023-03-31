@@ -5,11 +5,9 @@ import static org.springframework.restdocs.webtestclient.WebTestClientRestDocume
 import static org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation.documentationConfiguration;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.UUID;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -64,22 +62,19 @@ class AppTests {
         registry.add("s3.endpoint", () -> minio.getExternalAddress());
     }
 
-    @BeforeAll
-    static void createS3Account() throws Exception {
-        mc.createUser(username, password);
-    }
-
     @BeforeEach
-    void initTestBucket(RestDocumentationContextProvider restDocumentation) throws Exception {
+    void initTestBucket(RestDocumentationContextProvider restDocumentation) {
         this.webTestClient = createWebClient(restDocsFilter(restDocumentation), basicAuthentication(username, password));
         mc.deleteBucket("releases");
         mc.createBucket("releases");
-        mc.applyReadwritePolicy(username);
+        mc.removeUser(username);
+        mc.createUser(username, password);
     }
 
     @Test
     void testAuthenticateChallenge(RestDocumentationContextProvider restDocumentation) {
         // GIVEN
+        mc.applyReadwritePolicy(username);
 
         // WHEN
         createWebClient(restDocsFilter(restDocumentation))
@@ -96,6 +91,7 @@ class AppTests {
     @Test
     void testUploadRepositoryNotFound() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
 
         // WHEN
         uploadExchange("third-party", "/foo/bar/1.0.1/bar-1.0.1.pom")
@@ -108,6 +104,7 @@ class AppTests {
     @Test
     void testUploadSnapshotRepositoryNotFound() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
 
         // WHEN
         uploadExchange("snapshots", "/foo/bar/1.0.1-SNAPSHOT/bar-1.0.1-20201023.142512-1.jar")
@@ -119,6 +116,7 @@ class AppTests {
     @Test
     void testDownloadRepositoryNotFound() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
 
         // WHEN
         downloadExchange(UUID.randomUUID().toString(), "/foo/bar/1.0.1/bar-1.0.1.pom")
@@ -130,6 +128,7 @@ class AppTests {
     @Test
     void testArtifactNotFound() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
 
         // WHEN
         downloadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
@@ -142,6 +141,7 @@ class AppTests {
     @Test
     void testArtifactIsUploadedAndAvailable() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
         uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom")
                 .expectStatus().isCreated()
                 .expectBody().consumeWith(document("upload"));
@@ -154,7 +154,7 @@ class AppTests {
     }
 
     @Test
-    void testArtifactUploadedIsDenied() throws IOException, InterruptedException {
+    void testArtifactUploadedIsDenied() {
         // GIVEN
         mc.applyReadonlyPolicy(username);
 
@@ -170,6 +170,7 @@ class AppTests {
     @Test
     void testArtifactIsImmutable() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
         uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom").expectStatus().isCreated();
 
         // WHEN
@@ -183,6 +184,7 @@ class AppTests {
     @Test
     void testArtifactPathInvalid() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
 
         // WHEN
         uploadExchange("/foo/bar/1.0.1/foo-1.0.1.pom")
@@ -195,6 +197,7 @@ class AppTests {
     @Test
     void testMetadataIsEmpty() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
 
         // WHEN
         metadata()
@@ -207,6 +210,7 @@ class AppTests {
     @Test
     void testMetadata() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
         uploadExchange("/foo/bar/maven-metadata.xml").expectStatus().isCreated();
 
         // WHEN
@@ -220,6 +224,7 @@ class AppTests {
     @Test
     void testList() {
         // GIVEN
+        mc.applyReadwritePolicy(username);
         uploadExchange("/foo/bar/1.0.1/bar-1.0.1.pom").expectStatus().isCreated();
         uploadExchange("/foo/bar/maven-metadata.xml").expectStatus().isCreated();
 
@@ -235,6 +240,7 @@ class AppTests {
     @ValueSource(strings = {"", ".md5", ".sha1", ".asc"})
     void testMetadataIsMutable(String extension) {
         // GIVEN
+        mc.applyReadwritePolicy(username);
         uploadExchange("/foo/bar/maven-metadata.xml" + extension).expectStatus().isCreated();
 
         // WHEN
