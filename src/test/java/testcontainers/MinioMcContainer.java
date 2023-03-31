@@ -32,44 +32,67 @@ public class MinioMcContainer extends GenericContainer<MinioMcContainer> {
         }
     }
 
-    public ExecResult execSecure(String command, Object... args) throws IOException, InterruptedException {
+    public void execSecure(String command, Object... args) {
         ExecResult result = exec(command, args);
+
         if (result.getExitCode() != 0) {
             throw new AssertionError(result.getStderr());
         }
-        return result;
     }
 
-    public ExecResult exec(String command, Object... args) throws IOException, InterruptedException {
-        return execInContainer("/bin/sh", "-c",  format(command, args));
+    public ExecResult exec(String command, Object... args) {
+        try {
+            return execInContainer("/bin/sh", "-c",  format(command, args));
+        } catch (IOException|InterruptedException e) {
+            throw new AssertionError("exec has been failed!", e);
+        }
     }
 
-    public void deleteBucket(String bucket) throws IOException, InterruptedException {
+    public void deleteBucket(String bucket) {
         exec("mc rb test-minio/%s --force", bucket);
     }
 
-    public void createBucket(String bucket) throws IOException, InterruptedException {
+    public void createBucket(String bucket) {
         execSecure("mc mb test-minio/%s", bucket);
     }
 
-    public void createObject(String bucket, String key, String content) throws IOException, InterruptedException {
+    public void createObject(String bucket, String key, String content) {
         execSecure("echo -n \"%s\" | mc pipe test-minio/%s/%s", content, bucket, key);
     }
 
-    public void createObject(String bucket, String key) throws IOException, InterruptedException {
+    public void createObject(String bucket, String key) {
         createObject(bucket, key, UUID.randomUUID().toString());
     }
 
-    public void createUser(String username, String password) throws IOException, InterruptedException {
+    public void createUser(String username, String password) {
         execSecure("mc admin user add test-minio %s %s", username, password);
     }
 
-    public void applyReadonlyPolicy(String username) throws IOException, InterruptedException {
-        execSecure("mc admin policy set test-minio readonly user=%s", username);
+    public void applyReadonlyPolicy(String username) {
+        applyPolicy("readonly", username);
     }
 
-    public void applyReadwritePolicy(String username) throws IOException, InterruptedException {
-        execSecure("mc admin policy set test-minio readwrite user=%s", username);
+    public void applyReadwritePolicy(String username) {
+        applyPolicy("readwrite", username);
     }
 
+    public void applyPolicy(String policy, String username) {
+        execSecure("mc admin policy attach test-minio %s --user=%s", policy, username);
+    }
+
+    public void removeUser(String username) {
+        ExecResult result = exec("mc admin user remove test-minio %s", username);
+
+        if (result.getExitCode() == 0) {
+            return;
+        }
+
+        if (result.getExitCode() == 1) {
+            if (result.getStderr().contains("The specified user does not exist.")) {
+                return;
+            }
+        }
+
+        throw new AssertionError(result.getStderr());
+    }
 }
