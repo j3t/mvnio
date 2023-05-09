@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.5</version>
+        <version>3.0.6</version>
         <relativePath />
     </parent>
 
@@ -31,9 +31,9 @@
         <sonar.language>java</sonar.language>
 
         <!-- dependency versions -->
-        <awssdk.version>2.20.47</awssdk.version>
+        <awssdk.version>2.20.61</awssdk.version>
         <testcontainers.version>1.18.0</testcontainers.version>
-        <jacoco-maven-plugin.version>0.8.9</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
         <spring-restdocs-webtestclient.version>3.0.0</spring-restdocs-webtestclient.version>
     </properties>
